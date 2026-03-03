@@ -862,13 +862,13 @@ const CONFIG = {
       saudi: 'saudi arabia'
     },
     intelFeeds: {
-      defense: 'https://news.google.com/rss/search?q=THAAD+missile+UAE+intercept&hl=en&gl=AE&ceid=AE:en',
-      hormuz: 'https://news.google.com/rss/search?q=strait+hormuz+shipping+blockade&hl=en&gl=AE&ceid=AE:en',
-      water: 'https://news.google.com/rss/search?q=dubai+water+desalination+supply&hl=en&gl=AE&ceid=AE:en',
-      food: 'https://news.google.com/rss/search?q=dubai+food+supply+prices+shortage&hl=en&gl=AE&ceid=AE:en',
-      evacuation: 'https://news.google.com/rss/search?q=dubai+flights+airport+evacuation&hl=en&gl=AE&ceid=AE:en',
-      roads: 'https://news.google.com/rss/search?q=UAE+oman+border+road+fujairah&hl=en&gl=AE&ceid=AE:en',
-      saudi: 'https://news.google.com/rss/search?q=saudi+arabia+aramco+riyadh+conflict&hl=en&gl=AE&ceid=AE:en'
+      defense: 'https://news.google.com/rss/search?q=UAE+missile+defense+THAAD&hl=en&gl=US&ceid=US:en',
+      hormuz: 'https://news.google.com/rss/search?q=strait+of+hormuz+shipping&hl=en&gl=US&ceid=US:en',
+      water: 'https://news.google.com/rss/search?q=UAE+water+desalination&hl=en&gl=US&ceid=US:en',
+      food: 'https://news.google.com/rss/search?q=UAE+food+supply+chain&hl=en&gl=US&ceid=US:en',
+      evacuation: 'https://news.google.com/rss/search?q=dubai+airport+flights&hl=en&gl=US&ceid=US:en',
+      roads: 'https://news.google.com/rss/search?q=UAE+roads+fujairah+oman&hl=en&gl=US&ceid=US:en',
+      saudi: 'https://news.google.com/rss/search?q=saudi+arabia+iran+conflict&hl=en&gl=US&ceid=US:en'
     }
   }
 };
@@ -1653,18 +1653,10 @@ function updateScenarios() {
       '<div class="scenario-action">' + s.action + '</div></div>';
   });
 
-  // Signal breakdown panel
-  html += '<div style="margin-top:16px;padding:12px;background:#0a0e14;border:1px solid var(--border);border-radius:6px">' +
-    '<div style="font-size:.85em;font-weight:700;color:var(--accent);margin-bottom:8px">\uD83D\uDCCA LIVE CALCULATION — ' + signals.length + ' signals from OpenSky + GDELT APIs</div>';
-  signals.forEach(function(s) {
-    html += '<div style="display:flex;justify-content:space-between;font-size:.75em;padding:3px 6px;border-bottom:1px solid rgba(255,255,255,0.05)">' +
-      '<span style="color:' + s.color + ';flex:1">' + s.factor + '</span>' +
-      '<span style="color:var(--sub);font-family:\'JetBrains Mono\',monospace;white-space:nowrap;margin-left:12px">' + s.effect + '</span></div>';
-  });
-  html += '<div style="font-size:.7em;color:var(--sub);margin-top:8px;font-style:italic">' +
-    'Algorithm: base rates [A:20 B:30 C:25 D:12 E:13] adjusted by ' + signals.length + ' live signals → normalized to 100%. ' +
-    'Sources: OpenSky Network (ADS-B transponders), GDELT Project (article volume + NLP keyword scan of ' + allArticles.length + ' articles). ' +
-    'Updated: ' + dubaiTimeStr('time') + ' GST</div></div>';
+  // Sources footer (no calculation panel)
+  html += '<div style="margin-top:16px;padding:10px;font-size:.7em;color:var(--sub);font-style:italic;border-top:1px solid var(--border)">' +
+    'Probabilities derived from ' + signals.length + ' live signals (OpenSky ADS-B + Google News RSS + GDELT). ' +
+    'Updated: ' + dubaiTimeStr('time') + ' GST</div>';
 
   container.innerHTML = html;
 }
@@ -1735,7 +1727,7 @@ function updateTimeline() {
   html += '</table>';
   html += '<div style="font-size:.7em;color:var(--sub);margin-top:8px;font-style:italic">' +
     'Current: Day ' + conflictDay + ' | Airspace: <span style="color:' + airColor + '">' + airStatus + '</span> (OpenSky ADS-B) | ' +
-    'GDELT tracking: ' + defenseCount + ' defense, ' + hormuzCount + ' hormuz, ' + waterCount + ' water, ' + foodCount + ' food, ' + evacCount + ' evac articles | ' +
+    'Intel tracking: ' + defenseCount + ' defense, ' + hormuzCount + ' hormuz, ' + waterCount + ' water, ' + foodCount + ' food, ' + evacCount + ' evac articles | ' +
     'Updated: ' + dubaiTimeStr('time') + ' GST</div>';
   container.innerHTML = html;
 }
@@ -1758,7 +1750,7 @@ function updateReference() {
   var dubaiNow = new Date(now.toLocaleString('en-US', { timeZone: CONFIG.dubaiTZ }));
   var conflictDay = Math.ceil((dubaiNow - CONFIG.conflictStartDate) / (1000 * 60 * 60 * 24));
 
-  // ---- WATER TABLE (live-inferred status from GDELT) ----
+  // ---- WATER TABLE (live-inferred status from Intel feeds) ----
   var waterEl = document.getElementById('refWaterTable');
   if (waterEl) {
     var waterThreat = waterArticles.length >= 5 ? '#ff6b6b' : waterArticles.length >= 2 ? '#ffcc00' : '#66ff66';
@@ -1778,9 +1770,9 @@ function updateReference() {
   var waterLive = document.getElementById('refWaterLive');
   if (waterLive) {
     if (waterArticles.length > 0) {
-      waterLive.innerHTML = '<div style="font-size:.8em;color:var(--accent);font-weight:700;margin-top:10px">\uD83D\uDCE1 LIVE WATER/INFRASTRUCTURE NEWS (' + waterArticles.length + ' articles from GDELT):</div>' + renderGDELTArticles(waterArticles, 4);
+      waterLive.innerHTML = '<div style="font-size:.8em;color:var(--accent);font-weight:700;margin-top:10px">\uD83D\uDCE1 LIVE WATER/INFRASTRUCTURE NEWS (' + waterArticles.length + ' articles):</div>' + renderGDELTArticles(waterArticles, 4);
     } else {
-      waterLive.innerHTML = '<div style="font-size:.75em;color:var(--sub);margin-top:8px;font-style:italic">No recent water/infrastructure articles from GDELT. Updated: ' + dubaiTimeStr('time') + '</div>';
+      waterLive.innerHTML = '<div style="font-size:.75em;color:var(--sub);margin-top:8px;font-style:italic">No recent water/infrastructure articles from intel feeds. Updated: ' + dubaiTimeStr('time') + '</div>';
     }
   }
 
@@ -1788,7 +1780,7 @@ function updateReference() {
   var foodEl = document.getElementById('refFoodTable');
   if (foodEl) {
     var hormuzSeverity = hormuzArticles.length >= 5 ? '#ff6b6b' : hormuzArticles.length >= 2 ? '#ffcc00' : '#66ff66';
-    var hormuzText = hormuzArticles.length > 0 ? hormuzArticles[0].title.substring(0, 60) + '...' : 'No recent GDELT reports';
+    var hormuzText = hormuzArticles.length > 0 ? hormuzArticles[0].title.substring(0, 60) + '...' : 'No recent intel reports';
     var airFreightColor = dubaiAirborne === 0 ? '#ff6b6b' : dubaiAirborne < 15 ? '#ffcc00' : '#66ff66';
     var airFreightText = dubaiAirborne === 0 ? 'CLOSED — 0 aircraft (OpenSky)' : dubaiAirborne < 15 ? 'LIMITED — ' + dubaiAirborne + ' aircraft (OpenSky)' : 'OPERATIONAL — ' + dubaiAirborne + ' aircraft (OpenSky)';
     if (dubaiAirborne < 0) { airFreightColor = '#888'; airFreightText = 'Awaiting OpenSky data'; }
@@ -1797,10 +1789,10 @@ function updateReference() {
 
     foodEl.innerHTML = '<table class="flight-table">' +
       '<tr><th>Route</th><th>Live Status</th><th>Source</th></tr>' +
-      '<tr><td>Strait of Hormuz</td><td style="color:' + hormuzSeverity + '">' + hormuzText + '</td><td>GDELT (' + hormuzArticles.length + ' articles)</td></tr>' +
-      '<tr><td>Jebel Ali Port</td><td style="color:' + (foodArticles.length >= 5 ? '#ffcc00' : '#66ff66') + '">' + (foodArticles.length > 0 ? foodArticles[0].title.substring(0, 60) + '...' : 'No disruption alerts') + '</td><td>GDELT (' + foodArticles.length + ' articles)</td></tr>' +
+      '<tr><td>Strait of Hormuz</td><td style="color:' + hormuzSeverity + '">' + hormuzText + '</td><td>Intel (' + hormuzArticles.length + ' articles)</td></tr>' +
+      '<tr><td>Jebel Ali Port</td><td style="color:' + (foodArticles.length >= 5 ? '#ffcc00' : '#66ff66') + '">' + (foodArticles.length > 0 ? foodArticles[0].title.substring(0, 60) + '...' : 'No disruption alerts') + '</td><td>Intel (' + foodArticles.length + ' articles)</td></tr>' +
       '<tr><td>Air Freight (DXB)</td><td style="color:' + airFreightColor + '">' + airFreightText + '</td><td>OpenSky Network ADS-B</td></tr>' +
-      '<tr><td>Overland Routes</td><td style="color:' + roadsColor + '">' + roadsText + '</td><td>GDELT (' + roadsArticles.length + ' articles)</td></tr>' +
+      '<tr><td>Overland Routes</td><td style="color:' + roadsColor + '">' + roadsText + '</td><td>Intel (' + roadsArticles.length + ' articles)</td></tr>' +
       '</table>' +
       '<p style="font-size:.8em;color:var(--sub);margin-top:10px"><strong>Gov reserves:</strong> 1-5 months staples. 9 essential items price-controlled. Penalties AED 100K-2M for gouging.</p>';
   }
@@ -1810,9 +1802,9 @@ function updateReference() {
   if (foodLive) {
     var combined = [].concat(hormuzArticles, foodArticles).slice(0, 6);
     if (combined.length > 0) {
-      foodLive.innerHTML = '<div style="font-size:.8em;color:var(--accent);font-weight:700;margin-top:10px">\uD83D\uDCE1 LIVE FOOD & SHIPPING NEWS (' + combined.length + ' articles from GDELT):</div>' + renderGDELTArticles(combined, 5);
+      foodLive.innerHTML = '<div style="font-size:.8em;color:var(--accent);font-weight:700;margin-top:10px">\uD83D\uDCE1 LIVE FOOD & SHIPPING NEWS (' + combined.length + ' articles):</div>' + renderGDELTArticles(combined, 5);
     } else {
-      foodLive.innerHTML = '<div style="font-size:.75em;color:var(--sub);margin-top:8px;font-style:italic">No recent food/shipping articles from GDELT. Updated: ' + dubaiTimeStr('time') + '</div>';
+      foodLive.innerHTML = '<div style="font-size:.75em;color:var(--sub);margin-top:8px;font-style:italic">No recent food/shipping articles from intel feeds. Updated: ' + dubaiTimeStr('time') + '</div>';
     }
   }
 
@@ -1829,21 +1821,21 @@ function updateReference() {
 
     defEl.innerHTML = '<table class="flight-table">' +
       '<tr><th>System</th><th>Live Status (Day ' + conflictDay + ')</th><th>Est. Depletion</th><th>Intel Volume</th></tr>' +
-      '<tr><td>THAAD</td><td style="color:' + thaadColor + '">' + thaadStatus + '</td><td style="color:' + thaadColor + '">Day ~14 from conflict start</td><td style="color:' + defThreat + '">' + defenseArticles.length + ' GDELT articles</td></tr>' +
-      '<tr><td>Patriot</td><td style="color:' + patriotColor + '">' + patriotStatus + '</td><td>Day ~35 from conflict start</td><td style="color:' + defThreat + '">' + defenseArticles.length + ' GDELT articles</td></tr>' +
+      '<tr><td>THAAD</td><td style="color:' + thaadColor + '">' + thaadStatus + '</td><td style="color:' + thaadColor + '">Day ~14 from conflict start</td><td style="color:' + defThreat + '">' + defenseArticles.length + ' intel articles</td></tr>' +
+      '<tr><td>Patriot</td><td style="color:' + patriotColor + '">' + patriotStatus + '</td><td>Day ~35 from conflict start</td><td style="color:' + defThreat + '">' + defenseArticles.length + ' intel articles</td></tr>' +
       '<tr><td>Iran Cheapshot Strategy</td><td>Drones exhaust interceptors</td><td>Ongoing risk</td><td>' + getIntel('saudi').length + ' Saudi intel articles</td></tr>' +
       '</table>' +
       '<p style="font-size:.8em;color:var(--sub);margin-top:10px">Depletion estimates based on conflict day (' + conflictDay + ') vs. known interceptor inventory burn rates. ' +
-      'GDELT tracking ' + defenseArticles.length + ' defense/missile articles in real-time.</p>';
+      'Intel tracking ' + defenseArticles.length + ' defense/missile articles in real-time.</p>';
   }
 
   // Defense live news
   var defenseLive = document.getElementById('refDefenseLive');
   if (defenseLive) {
     if (defenseArticles.length > 0) {
-      defenseLive.innerHTML = '<div style="font-size:.8em;color:var(--accent);font-weight:700;margin-top:10px">\uD83D\uDCE1 LIVE DEFENSE/MISSILE NEWS (' + defenseArticles.length + ' articles from GDELT):</div>' + renderGDELTArticles(defenseArticles, 5);
+      defenseLive.innerHTML = '<div style="font-size:.8em;color:var(--accent);font-weight:700;margin-top:10px">\uD83D\uDCE1 LIVE DEFENSE/MISSILE NEWS (' + defenseArticles.length + ' articles):</div>' + renderGDELTArticles(defenseArticles, 5);
     } else {
-      defenseLive.innerHTML = '<div style="font-size:.75em;color:var(--sub);margin-top:8px;font-style:italic">No recent defense articles from GDELT. Updated: ' + dubaiTimeStr('time') + '</div>';
+      defenseLive.innerHTML = '<div style="font-size:.75em;color:var(--sub);margin-top:8px;font-style:italic">No recent defense articles from intel feeds. Updated: ' + dubaiTimeStr('time') + '</div>';
     }
   }
 
@@ -1872,7 +1864,7 @@ function updateReference() {
       return true;
     });
 
-    var html = '<div style="font-size:.8em;color:var(--accent);font-weight:700;margin-bottom:8px">\uD83D\uDCE1 LIVE SOURCES — ' + allSources.length + ' articles from ' + unique.length + ' sources via GDELT Project + OpenSky Network</div>';
+    var html = '<div style="font-size:.8em;color:var(--accent);font-weight:700;margin-bottom:8px">\uD83D\uDCE1 LIVE SOURCES — ' + allSources.length + ' articles from ' + unique.length + ' sources via Google News + GDELT + OpenSky</div>';
     html += '<div style="margin-bottom:10px;font-size:.75em;color:var(--sub)">Live API sources feeding this dashboard (auto-updated every 60s):</div>';
     html += '<table class="flight-table"><tr><th>#</th><th>Source</th><th>Topic</th><th>Latest Article</th></tr>';
     unique.slice(0, 30).forEach(function(s, i) {
@@ -1883,10 +1875,10 @@ function updateReference() {
     html += '<div style="margin-top:10px;font-size:.75em;color:var(--sub)">' +
       '<strong>Live API endpoints:</strong><br>' +
       '• <a href="https://opensky-network.org" target="_blank">OpenSky Network</a> — Real-time ADS-B aircraft transponder data (5 regions)<br>' +
-      '• <a href="https://www.gdeltproject.org" target="_blank">GDELT Project</a> — Global news monitoring in 65 languages (7 topic queries)<br>' +
+      '• <a href="https://news.google.com" target="_blank">Google News RSS</a> — Primary intel source (7 topic feeds: defense, hormuz, water, food, evacuation, roads, saudi)<br>' +
+      '• <a href="https://www.gdeltproject.org" target="_blank">GDELT Project</a> — Backup intel source (7 topic queries)<br>' +
       '• <a href="https://api.open-meteo.com" target="_blank">Open-Meteo</a> — Weather forecasts (Dubai coordinates)<br>' +
       '• <a href="https://open.er-api.com" target="_blank">ExchangeRate-API</a> — Currency exchange rates (AED base)<br>' +
-      '• <a href="https://news.google.com" target="_blank">Google News RSS</a> — Headline aggregation (4 conflict queries)<br>' +
       'Total: ' + allSources.length + ' live articles | ' + unique.length + ' unique sources | Updated: ' + dubaiTimeStr('time') + ' GST</div>';
     srcEl.innerHTML = html;
   }
