@@ -43,6 +43,8 @@ a:hover{text-decoration:underline}
 /* STATUS GRID */
 .status-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px;margin-bottom:16px}
 .status-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:14px;position:relative;overflow:hidden}
+a.status-card{display:block;text-decoration:none;color:inherit;cursor:pointer;transition:border-color .2s,transform .1s}
+a.status-card:hover{border-color:var(--accent);transform:translateY(-2px)}
 .status-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
 .status-card.red::before{background:var(--pulse-red)}
 .status-card.amber::before{background:var(--pulse-amber)}
@@ -232,42 +234,42 @@ a:hover{text-decoration:underline}
 
 <!-- STATUS GRID -->
 <div class="status-grid">
-  <div class="status-card red" id="cardFlights">
-    <div class="label">Dubai Airspace</div>
+  <a href="https://www.dubaiairports.ae/flight-information" target="_blank" class="status-card red" id="cardFlights">
+    <div class="label">Dubai Airspace <span style="font-size:.65em;color:var(--accent)">↗ Live</span></div>
     <div class="value">CLOSED</div>
     <div class="detail">Limited evacuation flights beginning Mar 2 evening. 2,000+ flights cancelled.</div>
     <span class="badge badge-red">CRITICAL</span>
-  </div>
-  <div class="status-card red" id="cardHormuz">
-    <div class="label">Strait of Hormuz</div>
+  </a>
+  <a href="https://www.marinetraffic.com/en/ais/home/centerx/56.3/centery/26.5/zoom/8" target="_blank" class="status-card red" id="cardHormuz">
+    <div class="label">Strait of Hormuz <span style="font-size:.65em;color:var(--accent)">↗ Live</span></div>
     <div class="value">70% Drop</div>
     <div class="detail">IRGC transit ban. ~170 ships trapped. Maersk, MSC, Hapag-Lloyd suspended.</div>
     <span class="badge badge-red">BLOCKED</span>
-  </div>
-  <div class="status-card amber" id="cardWater">
-    <div class="label">Water Supply</div>
+  </a>
+  <a href="https://www.dewa.gov.ae" target="_blank" class="status-card amber" id="cardWater">
+    <div class="label">Water Supply <span style="font-size:.65em;color:var(--accent)">↗ DEWA</span></div>
     <div class="value">OPERATIONAL</div>
     <div class="detail">Jebel Ali desal: 490 MIGD. ASR reserve: 90 days. Plant 3km from port = HIGH TARGET.</div>
     <span class="badge badge-amber">AT RISK</span>
-  </div>
-  <div class="status-card red" id="cardDefense">
-    <div class="label">Missile Defense</div>
+  </a>
+  <a href="https://twitter.com/modgovae" target="_blank" class="status-card red" id="cardDefense">
+    <div class="label">Missile Defense <span style="font-size:.65em;color:var(--accent)">↗ MOD</span></div>
     <div class="value">DEPLETING</div>
     <div class="detail">93.2% intercept rate. THAAD critical in 7-14d (70-80% prob). 708 projectiles so far.</div>
     <span class="badge badge-red">URGENT</span>
-  </div>
-  <div class="status-card amber" id="cardFood">
-    <div class="label">Food Supply</div>
+  </a>
+  <a href="https://twitter.com/moiuae" target="_blank" class="status-card amber" id="cardFood">
+    <div class="label">Food Supply <span style="font-size:.65em;color:var(--accent)">↗ MoI</span></div>
     <div class="value">RESTOCKING</div>
     <div class="detail">Panic buying subsiding. Supermarkets restocked. Prices rising 15-25% week 1.</div>
     <span class="badge badge-amber">MONITOR</span>
-  </div>
-  <div class="status-card green" id="cardWeather">
-    <div class="label">Dubai Weather</div>
+  </a>
+  <a href="https://open-meteo.com/en/forecast?latitude=25.2048&longitude=55.2708" target="_blank" class="status-card green" id="cardWeather">
+    <div class="label">Dubai Weather <span style="font-size:.65em;color:var(--accent)">↗ Forecast</span></div>
     <div class="value" id="weatherTemp">--°C</div>
     <div class="detail" id="weatherDesc">Loading weather data...</div>
     <span class="badge badge-blue" id="weatherBadge">LOADING</span>
-  </div>
+  </a>
 </div>
 
 <!-- TABS -->
