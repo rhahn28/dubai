@@ -1,0 +1,34 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__Claude_Preview__preview_start",
+      "Bash(git init)",
+      "Bash(git checkout -b main)",
+      "Bash(git remote add origin https://github.com/rhahn28/dubai.git)",
+      "Bash(git add dubai_dashboard.html server.js)",
+      "Bash(git commit:*)",
+      "Bash(git push -u origin main --force)",
+      "Bash(gh auth status)",
+      "Bash(gh auth switch --user rhahn28)",
+      "Bash(gh auth setup-git)",
+      "Bash(gh auth status --active)",
+      "Bash(gh api -X GET /repos/rhahn28/dubai --jq '.permissions')",
+      "Bash(MSYS_NO_PATHCONV=1 gh api /repos/rhahn28/dubai --jq '.permissions')",
+      "Bash(gh auth token)",
+      "Bash(MSYS_NO_PATHCONV=1 gh api /repos/rhahn28/dubai --jq '.default_branch,.size')",
+      "Bash(MSYS_NO_PATHCONV=1 gh api --method POST /repos/rhahn28/dubai/git/blobs --input _api_blob.json --jq '.sha')",
+      "Bash(gh auth switch --user rhahn2828)",
+      "Bash(gh auth login --hostname github.com --git-protocol https --web --scopes repo,read:org)",
+      "Bash(git remote set-url origin https://github.com/rhahn28/dubai.git)",
+      "Bash(npx --version)",
+      "Bash(vercel --version)",
+      "Bash(vercel whoami)",
+      "Bash(vercel --yes --prod --name dubai-dashboard)",
+      "Bash(vercel --confirm --prod --name dubai-dashboard)",
+      "WebFetch(domain:dubai-dashboard-ashen.vercel.app)",
+      "Bash(vercel ls)",
+      "Bash(vercel --confirm --prod)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code} %{content_type} %{size_download}\" https://dubai-dashboard-ashen.vercel.app)"
+    ]
+  }
+}

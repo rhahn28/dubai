@@ -473,38 +473,70 @@ a:hover{text-decoration:underline}
 
   <div class="section-header">Evacuation Routes (Live Status)</div>
   <div id="evacRoutes">
-    <div class="route-card">
+    <a href="https://www.google.com/maps/dir/Dubai/Hatta+Border+Crossing/@25.05,55.5,10z" target="_blank" class="route-card" style="text-decoration:none;color:inherit">
       <div class="route-status open">🟢</div>
       <div class="route-info">
-        <div class="rname">Road to Oman (FASTEST EXIT)</div>
-        <div class="rdetail">Hatta border (1.5hr) or Fujairah (2hr). Fujairah port + Oman airports operational. Oman not targeted. Muscat flies internationally.</div>
-        <div class="rtime">ETA: 1.5-2 hours | Visa: On arrival | Fuel: Check station availability</div>
+        <div class="rname">Road to Oman via Hatta (FASTEST EXIT) <span style="font-size:.7em;color:var(--accent)">Open in Maps</span></div>
+        <div class="rdetail">Hatta border (1.5hr). Oman not targeted. Muscat flies internationally.</div>
+        <div class="rtime">ETA: 1.5 hours | Visa: On arrival | Fuel: Check station availability</div>
       </div>
-    </div>
-    <div class="route-card">
+    </a>
+    <a href="https://www.google.com/maps/dir/Dubai/Fujairah/@25.2,55.8,10z" target="_blank" class="route-card" style="text-decoration:none;color:inherit">
+      <div class="route-status open">🟢</div>
+      <div class="route-info">
+        <div class="rname">Road to Oman via Fujairah <span style="font-size:.7em;color:var(--accent)">Open in Maps</span></div>
+        <div class="rdetail">Fujairah port + airport operational (2hr). Connect to Muscat or ship from Fujairah port.</div>
+        <div class="rtime">ETA: 2 hours | Fujairah bypasses Strait of Hormuz</div>
+      </div>
+    </a>
+    <a href="https://www.google.com/maps/dir/Dubai/Muscat,+Oman/@24.5,56.0,8z" target="_blank" class="route-card" style="text-decoration:none;color:inherit">
+      <div class="route-status open">🟢</div>
+      <div class="route-info">
+        <div class="rname">Full Route: Dubai → Muscat <span style="font-size:.7em;color:var(--accent)">Open in Maps</span></div>
+        <div class="rdetail">Via Hatta or Fujairah to Muscat. Muscat Intl (MCT) has international flights operating.</div>
+        <div class="rtime">ETA: 4-5 hours total | Best evacuation hub</div>
+      </div>
+    </a>
+    <a href="https://www.flightradar24.com/data/airports/dxb/departures" target="_blank" class="route-card" style="text-decoration:none;color:inherit">
       <div class="route-status limited">🟡</div>
       <div class="route-info">
-        <div class="rname">UAE Evacuation Flights</div>
+        <div class="rname">UAE Evacuation Flights (DXB) <span style="font-size:.7em;color:var(--accent)">Live Departures</span></div>
         <div class="rdetail">Government-organized. Emirates/Etihad limited service. Contact embassy for allocation.</div>
-        <div class="rtime">Status: LIMITED | Check dubaiairports.ae for updates</div>
+        <div class="rtime">Status: LIMITED | Check FlightRadar24 for live updates</div>
       </div>
-    </div>
-    <div class="route-card">
+    </a>
+    <a href="https://www.flightradar24.com/data/airports/mct/departures" target="_blank" class="route-card" style="text-decoration:none;color:inherit">
+      <div class="route-status open">🟢</div>
+      <div class="route-info">
+        <div class="rname">Muscat Airport (MCT) Flights <span style="font-size:.7em;color:var(--accent)">Live Departures</span></div>
+        <div class="rdetail">International flights operating. Drive to Oman first, then fly out from Muscat.</div>
+        <div class="rtime">Status: OPERATIONAL | International routes active</div>
+      </div>
+    </a>
+    <a href="https://step.state.gov" target="_blank" class="route-card" style="text-decoration:none;color:inherit">
       <div class="route-status limited">🔵</div>
       <div class="route-info">
-        <div class="rname">Embassy Repatriation</div>
-        <div class="rdetail">Register NOW at embassy. US: step.state.gov. UK: FCDO. May be free. Government-backed.</div>
+        <div class="rname">Embassy Repatriation (US: STEP) <span style="font-size:.7em;color:var(--accent)">Register Now</span></div>
+        <div class="rdetail">Register NOW. US: step.state.gov. UK: gov.uk/fcdo. May be free. Government-backed flights.</div>
         <div class="rtime">Timeline: Days to weeks | Register IMMEDIATELY</div>
       </div>
-    </div>
-    <div class="route-card">
+    </a>
+    <a href="https://www.dubaiairports.ae/flight-information" target="_blank" class="route-card" style="text-decoration:none;color:inherit">
       <div class="route-status limited">🟡</div>
       <div class="route-info">
-        <div class="rname">Road to Saudi Arabia</div>
+        <div class="rname">Dubai Airports — Official Status <span style="font-size:.7em;color:var(--accent)">Check Now</span></div>
+        <div class="rdetail">Official flight info from Dubai Airports. Check for new evacuation flight announcements.</div>
+        <div class="rtime">Updated by authorities | Check every 30 minutes</div>
+      </div>
+    </a>
+    <a href="https://www.google.com/maps/dir/Dubai/Riyadh,+Saudi+Arabia/@24.5,46.0,7z" target="_blank" class="route-card" style="text-decoration:none;color:inherit">
+      <div class="route-status limited">🟡</div>
+      <div class="route-info">
+        <div class="rname">Road to Saudi Arabia <span style="font-size:.7em;color:var(--accent)">Open in Maps</span></div>
         <div class="rdetail">Via Abu Dhabi (4-5hr). Saudi airports operational. BUT: Saudi eastern province also targeted. Visa needed.</div>
         <div class="rtime">ETA: 4-5 hours | Higher risk — Saudi also under attack</div>
       </div>
-    </div>
+    </a>
   </div>
 
   <div class="panel" style="margin-top:16px">
