@@ -853,13 +853,22 @@ const CONFIG = {
       dammam: 'https://opensky-network.org/api/states/all?lamin=25.5&lamax=27.0&lomin=49.0&lomax=50.5'
     },
     gdeltQueries: {
-      hormuz: '"strait of hormuz" OR "hormuz shipping" OR "hormuz blockade"',
-      water: '"dubai water" OR "DEWA" OR "desalination UAE"',
-      defense: '"UAE missile" OR "THAAD" OR "UAE intercept" OR "UAE air defense"',
-      food: '"dubai food" OR "UAE food" OR "UAE prices" OR "UAE supermarket"',
-      evacuation: '"dubai evacuation" OR "UAE flights" OR "DXB airport" OR "dubai airport"',
-      roads: '"UAE road" OR "oman border" OR "hatta" OR "fujairah"',
-      saudi: '"saudi arabia" OR "riyadh" OR "aramco attack" OR "saudi evacuation" OR "eastern province"'
+      hormuz: 'hormuz',
+      water: 'desalination UAE',
+      defense: 'THAAD',
+      food: 'dubai food',
+      evacuation: 'dubai airport',
+      roads: 'fujairah',
+      saudi: 'saudi arabia'
+    },
+    intelFeeds: {
+      defense: 'https://news.google.com/rss/search?q=THAAD+missile+UAE+intercept&hl=en&gl=AE&ceid=AE:en',
+      hormuz: 'https://news.google.com/rss/search?q=strait+hormuz+shipping+blockade&hl=en&gl=AE&ceid=AE:en',
+      water: 'https://news.google.com/rss/search?q=dubai+water+desalination+supply&hl=en&gl=AE&ceid=AE:en',
+      food: 'https://news.google.com/rss/search?q=dubai+food+supply+prices+shortage&hl=en&gl=AE&ceid=AE:en',
+      evacuation: 'https://news.google.com/rss/search?q=dubai+flights+airport+evacuation&hl=en&gl=AE&ceid=AE:en',
+      roads: 'https://news.google.com/rss/search?q=UAE+oman+border+road+fujairah&hl=en&gl=AE&ceid=AE:en',
+      saudi: 'https://news.google.com/rss/search?q=saudi+arabia+aramco+riyadh+conflict&hl=en&gl=AE&ceid=AE:en'
     }
   }
 };
@@ -874,6 +883,7 @@ let state = {
   news: [],
   opensky: {},
   gdelt: {},
+  intel: {},
   dataTimestamps: {},
   autoRefreshTimer: null
 };
@@ -1304,7 +1314,53 @@ async function fetchOpenSkyData() {
 }
 
 // ==========================================
-// GDELT PROJECT API (Free, real-time global news intelligence)
+// INTEL FEEDS (Google News RSS — reliable, fast)
+// Primary intel source for all topic monitoring
+// ==========================================
+async function fetchIntelFeed(topic, feedUrl) {
+  try {
+    var content = await fetchViaProxy(feedUrl);
+    if (!content) return { topic: topic, articles: [] };
+    var parser = new DOMParser();
+    var xml = parser.parseFromString(content, 'text/xml');
+    var items = xml.querySelectorAll('item');
+    var parsed = [];
+    items.forEach(function(item) {
+      var title = (item.querySelector('title') || {}).textContent || '';
+      var link = (item.querySelector('link') || {}).textContent || '';
+      var pubDate = (item.querySelector('pubDate') || {}).textContent || '';
+      var source = (item.querySelector('source') || {}).textContent || '';
+      if (title) parsed.push({ title: title, url: link, domain: source || 'Google News', seendate: pubDate, pubDate: pubDate });
+    });
+    return { topic: topic, articles: parsed.slice(0, 10) };
+  } catch(e) {
+    return { topic: topic, articles: [] };
+  }
+}
+
+async function fetchIntelFeeds() {
+  try {
+    var results = await Promise.allSettled(
+      Object.entries(CONFIG.apis.intelFeeds).map(function(entry) {
+        return fetchIntelFeed(entry[0], entry[1]);
+      })
+    );
+    state.intel = {};
+    results.forEach(function(r) {
+      if (r.status === 'fulfilled' && r.value) {
+        state.intel[r.value.topic] = r.value.articles;
+      }
+    });
+    state.dataTimestamps.intel = new Date();
+    var totalArticles = Object.values(state.intel).reduce(function(sum, arr) { return sum + arr.length; }, 0);
+    console.log('Intel feeds loaded: ' + totalArticles + ' articles across ' + Object.keys(state.intel).length + ' topics');
+  } catch(e) {
+    console.error('Intel feeds failed:', e);
+  }
+}
+
+// ==========================================
+// GDELT PROJECT API (Backup intel source)
 // https://blog.gdeltproject.org/gdelt-doc-2-0-api-debuts/
 // ==========================================
 function gdeltUrl(query, maxRecords, timespan) {
@@ -1315,9 +1371,8 @@ function gdeltUrl(query, maxRecords, timespan) {
 
 async function fetchGDELTTopic(topic, query) {
   var url = gdeltUrl(query, 5, '7d');
-  // GDELT v2 API generally supports CORS — try direct first
   try {
-    var res = await fetchWithTimeout(url, 10000);
+    var res = await fetchWithTimeout(url, 8000);
     if (res.ok) {
       var data = await res.json();
       return { topic: topic, articles: data.articles || [] };
@@ -1365,15 +1420,30 @@ function formatGDELTDate(seendate) {
 }
 
 function renderGDELTArticles(articles, maxItems) {
-  if (!articles || articles.length === 0) return '<p style="color:var(--sub);font-size:.85em">No recent articles found via GDELT. Data refreshes every 60s.</p>';
+  if (!articles || articles.length === 0) return '<p style="color:var(--sub);font-size:.85em">No recent articles found. Data refreshes every 60s.</p>';
   var html = '';
   articles.slice(0, maxItems || 5).forEach(function(a) {
+    var dateStr = a.pubDate ? new Date(a.pubDate).toLocaleString('en-GB', { timeZone: CONFIG.dubaiTZ, month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : formatGDELTDate(a.seendate);
     html += '<div class="news-item">' +
-      '<a href="' + (a.url || '#') + '" target="_blank" class="headline">' + (a.title || 'Untitled') + '</a>' +
-      '<div><span class="source">' + (a.domain || '') + '</span> <span class="time">' + formatGDELTDate(a.seendate) + '</span></div>' +
+      '<a href="' + (a.url || a.link || '#') + '" target="_blank" class="headline">' + (a.title || 'Untitled') + '</a>' +
+      '<div><span class="source">' + (a.domain || a.source || '') + '</span> <span class="time">' + dateStr + '</span></div>' +
       '</div>';
   });
   return html;
+}
+
+// Merge intel (Google News RSS) + GDELT for a topic, deduped by title
+function getIntel(topic) {
+  var intel = state.intel[topic] || [];
+  var gdelt = state.gdelt[topic] || [];
+  var all = [].concat(intel, gdelt);
+  var seen = {};
+  return all.filter(function(a) {
+    var key = (a.title || '').toLowerCase().substring(0, 50);
+    if (seen[key]) return false;
+    seen[key] = true;
+    return true;
+  });
 }
 
 // ==========================================
@@ -1393,13 +1463,13 @@ function updateScenarios() {
   var dubaiNow = new Date(now.toLocaleString('en-US', { timeZone: CONFIG.dubaiTZ }));
   var conflictDay = Math.ceil((dubaiNow - CONFIG.conflictStartDate) / (1000 * 60 * 60 * 24));
 
-  var defenseArticles = state.gdelt.defense || [];
-  var hormuzArticles = state.gdelt.hormuz || [];
-  var waterArticles = state.gdelt.water || [];
-  var evacuationArticles = state.gdelt.evacuation || [];
-  var foodArticles = state.gdelt.food || [];
-  var saudiArticles = state.gdelt.saudi || [];
-  var roadsArticles = state.gdelt.roads || [];
+  var defenseArticles = getIntel('defense');
+  var hormuzArticles = getIntel('hormuz');
+  var waterArticles = getIntel('water');
+  var evacuationArticles = getIntel('evacuation');
+  var foodArticles = getIntel('food');
+  var saudiArticles = getIntel('saudi');
+  var roadsArticles = getIntel('roads');
 
   var defenseCount = defenseArticles.length;
   var hormuzCount = hormuzArticles.length;
@@ -1407,7 +1477,7 @@ function updateScenarios() {
   var evacuationCount = evacuationArticles.length;
   var foodCount = foodArticles.length;
 
-  // Scan ALL GDELT headlines for keywords
+  // Scan ALL headlines for keywords
   var allArticles = [].concat(defenseArticles, hormuzArticles, waterArticles, evacuationArticles, foodArticles, roadsArticles, saudiArticles);
   var allTitles = allArticles.map(function(a) { return (a.title || '').toLowerCase(); }).join(' ');
 
@@ -1612,11 +1682,11 @@ function updateTimeline() {
 
   var dubai = state.opensky.dubai;
   var dubaiAirborne = (dubai && dubai.count >= 0) ? dubai.airborne : -1;
-  var defenseCount = (state.gdelt.defense || []).length;
-  var waterCount = (state.gdelt.water || []).length;
-  var foodCount = (state.gdelt.food || []).length;
-  var hormuzCount = (state.gdelt.hormuz || []).length;
-  var evacCount = (state.gdelt.evacuation || []).length;
+  var defenseCount = getIntel('defense').length;
+  var waterCount = getIntel('water').length;
+  var foodCount = getIntel('food').length;
+  var hormuzCount = getIntel('hormuz').length;
+  var evacCount = getIntel('evacuation').length;
 
   // Live airspace status
   var airStatus = 'Unknown';
@@ -1676,13 +1746,13 @@ function updateTimeline() {
 function updateReference() {
   var dubai = state.opensky.dubai;
   var dubaiAirborne = (dubai && dubai.count >= 0) ? dubai.airborne : -1;
-  var hormuzArticles = state.gdelt.hormuz || [];
-  var waterArticles = state.gdelt.water || [];
-  var foodArticles = state.gdelt.food || [];
-  var defenseArticles = state.gdelt.defense || [];
-  var evacuationArticles = state.gdelt.evacuation || [];
-  var roadsArticles = state.gdelt.roads || [];
-  var saudiArticles = state.gdelt.saudi || [];
+  var hormuzArticles = getIntel('hormuz');
+  var waterArticles = getIntel('water');
+  var foodArticles = getIntel('food');
+  var defenseArticles = getIntel('defense');
+  var evacuationArticles = getIntel('evacuation');
+  var roadsArticles = getIntel('roads');
+  var saudiArticles = getIntel('saudi');
 
   var now = new Date();
   var dubaiNow = new Date(now.toLocaleString('en-US', { timeZone: CONFIG.dubaiTZ }));
@@ -1761,7 +1831,7 @@ function updateReference() {
       '<tr><th>System</th><th>Live Status (Day ' + conflictDay + ')</th><th>Est. Depletion</th><th>Intel Volume</th></tr>' +
       '<tr><td>THAAD</td><td style="color:' + thaadColor + '">' + thaadStatus + '</td><td style="color:' + thaadColor + '">Day ~14 from conflict start</td><td style="color:' + defThreat + '">' + defenseArticles.length + ' GDELT articles</td></tr>' +
       '<tr><td>Patriot</td><td style="color:' + patriotColor + '">' + patriotStatus + '</td><td>Day ~35 from conflict start</td><td style="color:' + defThreat + '">' + defenseArticles.length + ' GDELT articles</td></tr>' +
-      '<tr><td>Iran Cheapshot Strategy</td><td>Drones exhaust interceptors</td><td>Ongoing risk</td><td>' + (state.gdelt.saudi || []).length + ' Saudi intel articles</td></tr>' +
+      '<tr><td>Iran Cheapshot Strategy</td><td>Drones exhaust interceptors</td><td>Ongoing risk</td><td>' + getIntel('saudi').length + ' Saudi intel articles</td></tr>' +
       '</table>' +
       '<p style="font-size:.8em;color:var(--sub);margin-top:10px">Depletion estimates based on conflict day (' + conflictDay + ') vs. known interceptor inventory burn rates. ' +
       'GDELT tracking ' + defenseArticles.length + ' defense/missile articles in real-time.</p>';
@@ -1845,39 +1915,39 @@ function updateStatusCards() {
     flightCard.querySelector('.detail').textContent = 'OpenSky Network: awaiting data... click for live info';
   }
 
-  // ---- HORMUZ CARD (GDELT) ----
-  var hormuzArticles = state.gdelt.hormuz;
+  // ---- HORMUZ CARD ----
+  var hormuzArticles = getIntel('hormuz');
   var hormuzCard = document.getElementById('cardHormuz');
   if (hormuzCard && hormuzArticles && hormuzArticles.length > 0) {
     hormuzCard.querySelector('.detail').textContent = hormuzArticles[0].title;
-    hormuzCard.querySelector('.detail').title = 'Source: ' + (hormuzArticles[0].domain || 'GDELT') + ' | ' + formatGDELTDate(hormuzArticles[0].seendate);
+    hormuzCard.querySelector('.detail').title = 'Source: ' + (hormuzArticles[0].domain || hormuzArticles[0].source || 'Intel') + ' | Live';
   }
 
-  // ---- WATER CARD (GDELT) ----
-  var waterArticles = state.gdelt.water;
+  // ---- WATER CARD ----
+  var waterArticles = getIntel('water');
   var waterCard = document.getElementById('cardWater');
   if (waterCard && waterArticles && waterArticles.length > 0) {
     waterCard.querySelector('.detail').textContent = waterArticles[0].title;
-    waterCard.querySelector('.detail').title = 'Source: ' + (waterArticles[0].domain || 'GDELT') + ' | ' + formatGDELTDate(waterArticles[0].seendate);
+    waterCard.querySelector('.detail').title = 'Source: ' + (waterArticles[0].domain || waterArticles[0].source || 'Intel') + ' | Live';
   }
 
-  // ---- DEFENSE CARD (GDELT) ----
-  var defenseArticles = state.gdelt.defense;
+  // ---- DEFENSE CARD ----
+  var defenseArticles = getIntel('defense');
   var defenseCard = document.getElementById('cardDefense');
   if (defenseCard && defenseArticles && defenseArticles.length > 0) {
     defenseCard.querySelector('.detail').textContent = defenseArticles[0].title;
-    defenseCard.querySelector('.detail').title = 'Source: ' + (defenseArticles[0].domain || 'GDELT') + ' | ' + formatGDELTDate(defenseArticles[0].seendate);
+    defenseCard.querySelector('.detail').title = 'Source: ' + (defenseArticles[0].domain || defenseArticles[0].source || 'Intel') + ' | Live';
     setValidation('valDefense', 'ok');
   } else {
     setValidation('valDefense', 'warn');
   }
 
-  // ---- FOOD CARD (GDELT) ----
-  var foodArticles = state.gdelt.food;
+  // ---- FOOD CARD ----
+  var foodArticles = getIntel('food');
   var foodCard = document.getElementById('cardFood');
   if (foodCard && foodArticles && foodArticles.length > 0) {
     foodCard.querySelector('.detail').textContent = foodArticles[0].title;
-    foodCard.querySelector('.detail').title = 'Source: ' + (foodArticles[0].domain || 'GDELT') + ' | ' + formatGDELTDate(foodArticles[0].seendate);
+    foodCard.querySelector('.detail').title = 'Source: ' + (foodArticles[0].domain || foodArticles[0].source || 'Intel') + ' | Live';
   }
 }
 
@@ -1979,11 +2049,11 @@ function updateEvacRecommendation() {
   var fujairah = state.opensky.fujairah;
   var riyadh = state.opensky.riyadh;
   var dammam = state.opensky.dammam;
-  var evacArticles = state.gdelt.evacuation || [];
-  var defenseArticles = state.gdelt.defense || [];
-  var roadsArticles = state.gdelt.roads || [];
-  var waterArticles = state.gdelt.water || [];
-  var saudiArticles = state.gdelt.saudi || [];
+  var evacArticles = getIntel('evacuation');
+  var defenseArticles = getIntel('defense');
+  var roadsArticles = getIntel('roads');
+  var waterArticles = getIntel('water');
+  var saudiArticles = getIntel('saudi');
 
   var dubaiAirborne = (dubai && dubai.count >= 0) ? dubai.airborne : -1;
   var muscatAirborne = (muscat && muscat.count >= 0) ? muscat.airborne : -1;
@@ -2072,7 +2142,7 @@ function renderFlightPanel() {
   var dubaiData = state.opensky.dubai;
   var muscatData = state.opensky.muscat;
   var fujairahData = state.opensky.fujairah;
-  var evacNews = state.gdelt.evacuation || [];
+  var evacNews = getIntel('evacuation');
 
   var dubaiAirborne = (dubaiData && dubaiData.count >= 0) ? dubaiData.airborne : -1;
   var muscatAirborne = (muscatData && muscatData.count >= 0) ? muscatData.airborne : -1;
@@ -2168,15 +2238,15 @@ function renderFlightPanel() {
 async function fetchHormuzStatus() {
   state.dataTimestamps.hormuz = new Date();
   renderHormuzPanel();
-  var hormuzArticles = state.gdelt.hormuz;
+  var hormuzArticles = getIntel('hormuz');
   setValidation('valHormuz', (hormuzArticles && hormuzArticles.length > 0) ? 'ok' : 'warn');
 }
 
 function renderHormuzPanel() {
-  var articles = state.gdelt.hormuz || [];
+  var articles = getIntel('hormuz');
 
   var html = '<div style="margin-bottom:16px">' +
-    '<strong style="font-size:.85em">\uD83C\uDF0A Strait of Hormuz \u2014 Latest Intelligence (GDELT Project \u2014 Real-Time):</strong>' +
+    '<strong style="font-size:.85em">\uD83C\uDF0A Strait of Hormuz \u2014 Latest Intelligence (Google News + GDELT \u2014 Real-Time):</strong>' +
     renderGDELTArticles(articles, 5) +
     '</div>';
 
@@ -2303,7 +2373,8 @@ async function refreshAll() {
       fetchCurrency(),
       fetchNews(),
       fetchOpenSkyData(),
-      fetchGDELTTopics()
+      fetchGDELTTopics(),
+      fetchIntelFeeds()
     ]);
   } catch (e) {
     console.error('Refresh phase 1 error:', e);
