@@ -1318,38 +1318,73 @@ async function fetchOpenSkyData() {
 // Primary intel source for all topic monitoring
 // ==========================================
 async function fetchIntelFeed(topic, feedUrl) {
-  try {
-    var content = await fetchViaProxy(feedUrl);
-    if (!content) return { topic: topic, articles: [] };
-    var parser = new DOMParser();
-    var xml = parser.parseFromString(content, 'text/xml');
-    var items = xml.querySelectorAll('item');
-    var parsed = [];
-    items.forEach(function(item) {
-      var title = (item.querySelector('title') || {}).textContent || '';
-      var link = (item.querySelector('link') || {}).textContent || '';
-      var pubDate = (item.querySelector('pubDate') || {}).textContent || '';
-      var source = (item.querySelector('source') || {}).textContent || '';
-      if (title) parsed.push({ title: title, url: link, domain: source || 'Google News', seendate: pubDate, pubDate: pubDate });
-    });
-    return { topic: topic, articles: parsed.slice(0, 10) };
-  } catch(e) {
-    return { topic: topic, articles: [] };
+  // Try each CORS proxy with longer timeout for intel feeds
+  var proxies = [
+    function(u) { return 'https://api.allorigins.win/get?url=' + encodeURIComponent(u); },
+    function(u) { return 'https://corsproxy.io/?' + encodeURIComponent(u); },
+    function(u) { return 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(u); }
+  ];
+  for (var p = 0; p < proxies.length; p++) {
+    try {
+      var proxyUrl = proxies[p](feedUrl);
+      var res = await fetchWithTimeout(proxyUrl, 12000);
+      if (!res.ok) continue;
+      var data = await res.json();
+      var content = data.contents || (typeof data === 'string' ? data : JSON.stringify(data));
+      if (!content) continue;
+      var parser = new DOMParser();
+      var xml = parser.parseFromString(content, 'text/xml');
+      var items = xml.querySelectorAll('item');
+      var parsed = [];
+      items.forEach(function(item) {
+        var title = (item.querySelector('title') || {}).textContent || '';
+        var link = (item.querySelector('link') || {}).textContent || '';
+        var pubDate = (item.querySelector('pubDate') || {}).textContent || '';
+        var source = (item.querySelector('source') || {}).textContent || '';
+        if (title) parsed.push({ title: title, url: link, domain: source || 'Google News', seendate: pubDate, pubDate: pubDate });
+      });
+      if (parsed.length > 0) return { topic: topic, articles: parsed.slice(0, 10) };
+    } catch(e) { continue; }
   }
+  // Last resort: corsproxy raw text
+  try {
+    var rawRes = await fetchWithTimeout('https://corsproxy.io/?' + encodeURIComponent(feedUrl), 10000);
+    if (rawRes.ok) {
+      var rawText = await rawRes.text();
+      var parser2 = new DOMParser();
+      var xml2 = parser2.parseFromString(rawText, 'text/xml');
+      var items2 = xml2.querySelectorAll('item');
+      var parsed2 = [];
+      items2.forEach(function(item) {
+        var title = (item.querySelector('title') || {}).textContent || '';
+        var link = (item.querySelector('link') || {}).textContent || '';
+        var pubDate = (item.querySelector('pubDate') || {}).textContent || '';
+        var source = (item.querySelector('source') || {}).textContent || '';
+        if (title) parsed2.push({ title: title, url: link, domain: source || 'Google News', seendate: pubDate, pubDate: pubDate });
+      });
+      if (parsed2.length > 0) return { topic: topic, articles: parsed2.slice(0, 10) };
+    }
+  } catch(e) {}
+  return { topic: topic, articles: [] };
 }
 
 async function fetchIntelFeeds() {
   try {
-    var results = await Promise.allSettled(
-      Object.entries(CONFIG.apis.intelFeeds).map(function(entry) {
-        return fetchIntelFeed(entry[0], entry[1]);
-      })
-    );
-    state.intel = {};
-    results.forEach(function(r) {
-      if (r.status === 'fulfilled' && r.value) {
-        state.intel[r.value.topic] = r.value.articles;
-      }
+    state.intel = state.intel || {};
+    var entries = Object.entries(CONFIG.apis.intelFeeds);
+    // Batch 1: Critical feeds (defense, hormuz, water)
+    var batch1 = entries.filter(function(e) { return ['defense','hormuz','water'].indexOf(e[0]) >= 0; });
+    var results1 = await Promise.allSettled(batch1.map(function(entry) { return fetchIntelFeed(entry[0], entry[1]); }));
+    results1.forEach(function(r) {
+      if (r.status === 'fulfilled' && r.value) state.intel[r.value.topic] = r.value.articles;
+    });
+    // Small delay to avoid proxy rate limiting
+    await new Promise(function(resolve) { setTimeout(resolve, 500); });
+    // Batch 2: Remaining feeds (food, evacuation, roads, saudi)
+    var batch2 = entries.filter(function(e) { return ['defense','hormuz','water'].indexOf(e[0]) < 0; });
+    var results2 = await Promise.allSettled(batch2.map(function(entry) { return fetchIntelFeed(entry[0], entry[1]); }));
+    results2.forEach(function(r) {
+      if (r.status === 'fulfilled' && r.value) state.intel[r.value.topic] = r.value.articles;
     });
     state.dataTimestamps.intel = new Date();
     var totalArticles = Object.values(state.intel).reduce(function(sum, arr) { return sum + arr.length; }, 0);
@@ -1780,21 +1815,24 @@ function updateReference() {
   var foodEl = document.getElementById('refFoodTable');
   if (foodEl) {
     var hormuzSeverity = hormuzArticles.length >= 5 ? '#ff6b6b' : hormuzArticles.length >= 2 ? '#ffcc00' : '#66ff66';
-    var hormuzText = hormuzArticles.length > 0 ? hormuzArticles[0].title.substring(0, 60) + '...' : 'No recent intel reports';
+    var hormuzText = hormuzArticles.length > 0 ? hormuzArticles[0].title.substring(0, 70) + '...' : (foodArticles.length > 0 ? foodArticles[0].title.substring(0, 60) + ' (via food intel)' : 'Monitoring — awaiting feed data...');
+    if (hormuzArticles.length === 0 && foodArticles.length > 0) hormuzSeverity = '#ffcc00';
     var airFreightColor = dubaiAirborne === 0 ? '#ff6b6b' : dubaiAirborne < 15 ? '#ffcc00' : '#66ff66';
     var airFreightText = dubaiAirborne === 0 ? 'CLOSED — 0 aircraft (OpenSky)' : dubaiAirborne < 15 ? 'LIMITED — ' + dubaiAirborne + ' aircraft (OpenSky)' : 'OPERATIONAL — ' + dubaiAirborne + ' aircraft (OpenSky)';
     if (dubaiAirborne < 0) { airFreightColor = '#888'; airFreightText = 'Awaiting OpenSky data'; }
     var roadsColor = roadsArticles.length >= 5 ? '#ffcc00' : '#66ff66';
-    var roadsText = roadsArticles.length > 0 ? roadsArticles[0].title.substring(0, 60) + '...' : 'Roads appear open (no disruption reports)';
+    var roadsText = roadsArticles.length > 0 ? roadsArticles[0].title.substring(0, 70) + '...' : (evacuationArticles.length > 0 ? evacuationArticles[0].title.substring(0, 60) + ' (via evac intel)' : 'Roads appear open (monitoring)');
+    if (roadsArticles.length === 0 && evacuationArticles.length > 0) roadsColor = '#ffcc00';
+    var totalFoodIntel = hormuzArticles.length + foodArticles.length + roadsArticles.length;
 
     foodEl.innerHTML = '<table class="flight-table">' +
       '<tr><th>Route</th><th>Live Status</th><th>Source</th></tr>' +
-      '<tr><td>Strait of Hormuz</td><td style="color:' + hormuzSeverity + '">' + hormuzText + '</td><td>Intel (' + hormuzArticles.length + ' articles)</td></tr>' +
-      '<tr><td>Jebel Ali Port</td><td style="color:' + (foodArticles.length >= 5 ? '#ffcc00' : '#66ff66') + '">' + (foodArticles.length > 0 ? foodArticles[0].title.substring(0, 60) + '...' : 'No disruption alerts') + '</td><td>Intel (' + foodArticles.length + ' articles)</td></tr>' +
+      '<tr><td>Strait of Hormuz</td><td style="color:' + hormuzSeverity + '">' + hormuzText + '</td><td>Intel (' + Math.max(hormuzArticles.length, foodArticles.length) + ' articles)</td></tr>' +
+      '<tr><td>Jebel Ali Port</td><td style="color:' + (foodArticles.length >= 5 ? '#ffcc00' : '#66ff66') + '">' + (foodArticles.length > 0 ? foodArticles[0].title.substring(0, 70) + '...' : 'No disruption alerts') + '</td><td>Intel (' + foodArticles.length + ' articles)</td></tr>' +
       '<tr><td>Air Freight (DXB)</td><td style="color:' + airFreightColor + '">' + airFreightText + '</td><td>OpenSky Network ADS-B</td></tr>' +
-      '<tr><td>Overland Routes</td><td style="color:' + roadsColor + '">' + roadsText + '</td><td>Intel (' + roadsArticles.length + ' articles)</td></tr>' +
+      '<tr><td>Overland Routes</td><td style="color:' + roadsColor + '">' + roadsText + '</td><td>Intel (' + Math.max(roadsArticles.length, evacuationArticles.length) + ' articles)</td></tr>' +
       '</table>' +
-      '<p style="font-size:.8em;color:var(--sub);margin-top:10px"><strong>Gov reserves:</strong> 1-5 months staples. 9 essential items price-controlled. Penalties AED 100K-2M for gouging.</p>';
+      '<p style="font-size:.8em;color:var(--sub);margin-top:10px"><strong>Gov reserves:</strong> 1-5 months staples. 9 essential items price-controlled. Penalties AED 100K-2M for gouging. | <strong>' + totalFoodIntel + ' total intel articles</strong> monitored across all supply routes.</p>';
   }
 
   // Food live news
@@ -1808,7 +1846,7 @@ function updateReference() {
     }
   }
 
-  // ---- DEFENSE TABLE (live from GDELT + conflict day) ----
+  // ---- DEFENSE TABLE (live from Intel feeds + conflict day) ----
   var defEl = document.getElementById('refDefenseTable');
   if (defEl) {
     var thaadDays = Math.max(0, 14 - conflictDay);
@@ -1818,15 +1856,19 @@ function updateReference() {
     var patriotColor = patriotDays <= 7 ? '#ff6b6b' : patriotDays <= 14 ? '#ffcc00' : '#66ff66';
     var patriotStatus = patriotDays <= 0 ? 'LIKELY EXHAUSTED' : 'Active — ~' + patriotDays + 'd est.';
     var defThreat = defenseArticles.length >= 8 ? '#ff6b6b' : defenseArticles.length >= 3 ? '#ffcc00' : '#66ff66';
+    var latestDefHeadline = defenseArticles.length > 0 ? defenseArticles[0].title.substring(0, 50) + '...' : 'Monitoring...';
+    var latestDefHeadline2 = defenseArticles.length > 1 ? defenseArticles[1].title.substring(0, 50) + '...' : latestDefHeadline;
+    var saudiIntel = getIntel('saudi');
+    var latestSaudiHeadline = saudiIntel.length > 0 ? saudiIntel[0].title.substring(0, 50) + '...' : 'Monitoring Saudi intel...';
 
     defEl.innerHTML = '<table class="flight-table">' +
-      '<tr><th>System</th><th>Live Status (Day ' + conflictDay + ')</th><th>Est. Depletion</th><th>Intel Volume</th></tr>' +
-      '<tr><td>THAAD</td><td style="color:' + thaadColor + '">' + thaadStatus + '</td><td style="color:' + thaadColor + '">Day ~14 from conflict start</td><td style="color:' + defThreat + '">' + defenseArticles.length + ' intel articles</td></tr>' +
-      '<tr><td>Patriot</td><td style="color:' + patriotColor + '">' + patriotStatus + '</td><td>Day ~35 from conflict start</td><td style="color:' + defThreat + '">' + defenseArticles.length + ' intel articles</td></tr>' +
-      '<tr><td>Iran Cheapshot Strategy</td><td>Drones exhaust interceptors</td><td>Ongoing risk</td><td>' + getIntel('saudi').length + ' Saudi intel articles</td></tr>' +
+      '<tr><th>System</th><th>Live Status (Day ' + conflictDay + ')</th><th>Est. Depletion</th><th>Latest Intel (' + defenseArticles.length + ' articles)</th></tr>' +
+      '<tr><td>THAAD</td><td style="color:' + thaadColor + '">' + thaadStatus + '</td><td style="color:' + thaadColor + '">Day ~14 from conflict start</td><td style="color:' + defThreat + ';font-size:.85em">' + latestDefHeadline + '</td></tr>' +
+      '<tr><td>Patriot</td><td style="color:' + patriotColor + '">' + patriotStatus + '</td><td>Day ~35 from conflict start</td><td style="color:' + defThreat + ';font-size:.85em">' + latestDefHeadline2 + '</td></tr>' +
+      '<tr><td>Iran Strategy</td><td>Drones exhaust interceptors</td><td>Ongoing risk</td><td style="font-size:.85em">' + latestSaudiHeadline + ' (' + saudiIntel.length + ')</td></tr>' +
       '</table>' +
-      '<p style="font-size:.8em;color:var(--sub);margin-top:10px">Depletion estimates based on conflict day (' + conflictDay + ') vs. known interceptor inventory burn rates. ' +
-      'Intel tracking ' + defenseArticles.length + ' defense/missile articles in real-time.</p>';
+      '<p style="font-size:.8em;color:var(--sub);margin-top:10px">Depletion: conflict day ' + conflictDay + ' vs interceptor burn rates. ' +
+      defenseArticles.length + ' defense + ' + saudiIntel.length + ' Saudi articles tracked in real-time via Google News + GDELT.</p>';
   }
 
   // Defense live news
