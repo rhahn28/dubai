@@ -223,6 +223,8 @@ a.status-card:hover{border-color:var(--accent);transform:translateY(-2px)}
   <div class="val-item"><div class="val-dot val-ok" id="valCurrency"></div> Currency</div>
   <div class="val-item"><div class="val-dot val-warn" id="valHormuz"></div> Hormuz</div>
   <div class="val-item"><div class="val-dot val-warn" id="valDefense"></div> Defense</div>
+  <div class="val-item"><div class="val-dot val-warn" id="valOpenSky"></div> OpenSky</div>
+  <div class="val-item"><div class="val-dot val-warn" id="valGDELT"></div> GDELT</div>
   <span style="margin-left:auto;color:var(--sub)" id="validationSummary">Initializing...</span>
 </div>
 
@@ -449,6 +451,14 @@ a.status-card:hover{border-color:var(--accent);transform:translateY(-2px)}
 <!-- TAB: EVACUATION -->
 <div class="tab-content" id="tab-evac">
   <div class="section-header">Evacuation Decision Matrix — Agata &amp; Pia</div>
+
+  <!-- LIVE SIGNALS -->
+  <div id="evacLiveSignals" class="panel" style="margin-bottom:16px;border:2px solid var(--accent)">
+    <div class="panel-header" style="background:#001a33"><h3 style="color:var(--accent)">📡 LIVE DATA SIGNALS (OpenSky + GDELT)</h3><span class="ts" id="evacSignalTs">Loading...</span></div>
+    <div class="panel-body" id="evacSignalBody">
+      <div class="loading"><div class="spinner"></div> Fetching live intelligence from OpenSky Network &amp; GDELT Project...</div>
+    </div>
+  </div>
 
   <div class="two-col" style="margin-bottom:16px">
     <div class="panel" style="border:2px solid var(--pulse-green)">
@@ -861,7 +871,20 @@ const CONFIG = {
       'https://news.google.com/rss/search?q=UAE+missile+attack+2026&hl=en&gl=AE&ceid=AE:en',
       'https://news.google.com/rss/search?q=strait+hormuz+shipping+2026&hl=en&gl=AE&ceid=AE:en',
       'https://news.google.com/rss/search?q=dubai+flights+evacuation+2026&hl=en&gl=AE&ceid=AE:en'
-    ]
+    ],
+    opensky: {
+      dubai: 'https://opensky-network.org/api/states/all?lamin=24.5&lamax=26.0&lomin=54.5&lomax=56.0',
+      muscat: 'https://opensky-network.org/api/states/all?lamin=23.0&lamax=24.0&lomin=57.5&lomax=59.0',
+      fujairah: 'https://opensky-network.org/api/states/all?lamin=25.0&lamax=25.5&lomin=56.0&lomax=56.5'
+    },
+    gdeltQueries: {
+      hormuz: '"strait of hormuz" OR "hormuz shipping" OR "hormuz blockade"',
+      water: '"dubai water" OR "DEWA" OR "desalination UAE"',
+      defense: '"UAE missile" OR "THAAD" OR "UAE intercept" OR "UAE air defense"',
+      food: '"dubai food" OR "UAE food" OR "UAE prices" OR "UAE supermarket"',
+      evacuation: '"dubai evacuation" OR "UAE flights" OR "DXB airport" OR "dubai airport"',
+      roads: '"UAE road" OR "oman border" OR "hatta" OR "fujairah"'
+    }
   }
 };
 
@@ -873,6 +896,8 @@ let state = {
   weather: null,
   currency: null,
   news: [],
+  opensky: {},
+  gdelt: {},
   dataTimestamps: {},
   autoRefreshTimer: null
 };
@@ -1254,123 +1279,439 @@ function renderNewsFallback() {
 }
 
 // ==========================================
-// FLIGHT STATUS
+// OPENSKY NETWORK API (Free, real ADS-B data)
+// https://opensky-network.org/apidoc/
 // ==========================================
-async function fetchFlightStatus() {
-  // FlightRadar24 and aviation APIs require paid keys for programmatic access.
-  // We provide structured status + live links.
-  state.dataTimestamps.flights = new Date();
-  renderFlightStatus();
-  setValidation('valFlights', 'warn');
+async function fetchOpenSkyRegion(name, url) {
+  // Try via CORS proxy first (OpenSky doesn't send CORS headers for anon)
+  try {
+    var content = await fetchViaProxy(url);
+    if (content) {
+      var data = typeof content === 'string' ? JSON.parse(content) : content;
+      var states = data.states || [];
+      return { name: name, data: data, count: states.length, airborne: states.filter(function(s){ return !s[8]; }).length };
+    }
+  } catch(e) {
+    console.warn('OpenSky proxy ' + name + ':', e.message);
+  }
+  // Try direct (works on some servers/browsers)
+  try {
+    var res = await fetchWithTimeout(url, 10000);
+    if (res.ok) {
+      var data2 = await res.json();
+      var states2 = data2.states || [];
+      return { name: name, data: data2, count: states2.length, airborne: states2.filter(function(s){ return !s[8]; }).length };
+    }
+  } catch(e2) {
+    console.warn('OpenSky direct ' + name + ':', e2.message);
+  }
+  return { name: name, data: null, count: -1, airborne: -1 };
 }
 
-function renderFlightStatus() {
-  document.getElementById('flightPanel').innerHTML = `
-    <div style="padding:4px 0 12px;font-size:.85em;color:#ff6b6b;font-weight:700">
-      UAE AIRSPACE STATUS: CLOSED (limited evacuation flights beginning Mar 2 evening)
-    </div>
+async function fetchOpenSkyData() {
+  try {
+    var results = await Promise.allSettled(
+      Object.entries(CONFIG.apis.opensky).map(function(entry) { return fetchOpenSkyRegion(entry[0], entry[1]); })
+    );
+    results.forEach(function(r) {
+      if (r.status === 'fulfilled' && r.value) {
+        state.opensky[r.value.name] = r.value;
+      }
+    });
+    state.dataTimestamps.opensky = new Date();
+    var dubaiOk = state.opensky.dubai && state.opensky.dubai.count >= 0;
+    setValidation('valOpenSky', dubaiOk ? 'ok' : 'warn');
+  } catch(e) {
+    console.error('OpenSky fetch failed:', e);
+    setValidation('valOpenSky', 'err');
+  }
+}
 
-    <div style="margin-bottom:16px">
-      <strong style="font-size:.85em">Live Flight Tracking — Check These NOW:</strong>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
-        <a href="https://www.flightradar24.com/data/airports/dxb/departures" target="_blank"
-           style="padding:10px;background:#0d1117;border:1px solid var(--border);border-radius:4px;display:block;font-size:.85em">
-          <strong>DXB Departures</strong><br><span style="color:var(--sub)">FlightRadar24 Live</span>
-        </a>
-        <a href="https://www.flightradar24.com/data/airports/auh/departures" target="_blank"
-           style="padding:10px;background:#0d1117;border:1px solid var(--border);border-radius:4px;display:block;font-size:.85em">
-          <strong>AUH Departures</strong><br><span style="color:var(--sub)">Abu Dhabi FlightRadar24</span>
-        </a>
-        <a href="https://www.flightradar24.com/data/airports/mct/departures" target="_blank"
-           style="padding:10px;background:#0d1117;border:1px solid var(--border);border-radius:4px;display:block;font-size:.85em">
-          <strong>MCT Departures</strong><br><span style="color:var(--sub)">Muscat, Oman (EVAC ROUTE)</span>
-        </a>
-        <a href="https://www.flightradar24.com/data/airports/fjr/departures" target="_blank"
-           style="padding:10px;background:#0d1117;border:1px solid var(--border);border-radius:4px;display:block;font-size:.85em">
-          <strong>FJR Status</strong><br><span style="color:var(--sub)">Fujairah (EVAC ROUTE)</span>
-        </a>
-      </div>
-    </div>
+// ==========================================
+// GDELT PROJECT API (Free, real-time global news intelligence)
+// https://blog.gdeltproject.org/gdelt-doc-2-0-api-debuts/
+// ==========================================
+function gdeltUrl(query, maxRecords, timespan) {
+  return 'https://api.gdeltproject.org/api/v2/doc/doc?query=' +
+    encodeURIComponent(query) + '&mode=artlist&maxrecords=' +
+    (maxRecords || 5) + '&format=json&sort=datedesc&timespan=' + (timespan || '7d');
+}
 
-    <div style="margin-bottom:16px">
-      <strong style="font-size:.85em">Airline Contact / Rebooking:</strong>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
-        <a href="https://www.emirates.com/manage-booking/" target="_blank"
-           style="padding:8px;background:#0d1117;border:1px solid var(--border);border-radius:4px;display:block;font-size:.85em">
-          Emirates — Manage Booking
-        </a>
-        <a href="https://www.etihad.com/en/help" target="_blank"
-           style="padding:8px;background:#0d1117;border:1px solid var(--border);border-radius:4px;display:block;font-size:.85em">
-          Etihad — Help Center
-        </a>
-        <a href="https://www.flydubai.com/en/manage" target="_blank"
-           style="padding:8px;background:#0d1117;border:1px solid var(--border);border-radius:4px;display:block;font-size:.85em">
-          FlyDubai — Manage
-        </a>
-        <a href="https://www.dubaiairports.ae/flight-information" target="_blank"
-           style="padding:8px;background:#0d1117;border:1px solid var(--border);border-radius:4px;display:block;font-size:.85em">
-          Dubai Airports — Official
-        </a>
-      </div>
-    </div>
+async function fetchGDELTTopic(topic, query) {
+  var url = gdeltUrl(query, 5, '7d');
+  // GDELT v2 API generally supports CORS — try direct first
+  try {
+    var res = await fetchWithTimeout(url, 10000);
+    if (res.ok) {
+      var data = await res.json();
+      return { topic: topic, articles: data.articles || [] };
+    }
+  } catch(e) {}
+  // Fallback to proxy
+  try {
+    var content = await fetchViaProxy(url);
+    if (content) {
+      var data2 = typeof content === 'string' ? JSON.parse(content) : content;
+      return { topic: topic, articles: data2.articles || [] };
+    }
+  } catch(e2) {}
+  return { topic: topic, articles: [] };
+}
 
-    <div style="padding:10px;background:#1a0000;border:1px solid #5c0000;border-radius:6px;font-size:.85em">
-      <strong style="color:#ff6b6b">EVACUATION FLIGHT ADVISORY:</strong><br>
-      <ul style="margin:6px 0 0 16px;color:var(--sub)">
-        <li>Check <a href="https://www.flightradar24.com/data/airports/dxb/departures" target="_blank">DXB departures</a> every 30 minutes for new flights</li>
-        <li>Muscat (MCT) is the best evacuation hub — international flights operating</li>
-        <li>Drive to Fujairah (2hr) or Hatta border (1.5hr) → then Muscat</li>
-        <li>Contact your embassy NOW for repatriation flight lists</li>
-        <li>Have passports, cash, and GO BAGs ready for immediate departure</li>
-      </ul>
-    </div>`;
+async function fetchGDELTTopics() {
+  try {
+    var results = await Promise.allSettled(
+      Object.entries(CONFIG.apis.gdeltQueries).map(function(entry) {
+        return fetchGDELTTopic(entry[0], entry[1]);
+      })
+    );
+    state.gdelt = {};
+    results.forEach(function(r) {
+      if (r.status === 'fulfilled' && r.value) {
+        state.gdelt[r.value.topic] = r.value.articles;
+      }
+    });
+    state.dataTimestamps.gdelt = new Date();
+    var totalArticles = Object.values(state.gdelt).reduce(function(sum, arr) { return sum + arr.length; }, 0);
+    setValidation('valGDELT', totalArticles > 0 ? 'ok' : 'warn');
+  } catch(e) {
+    console.error('GDELT fetch failed:', e);
+    setValidation('valGDELT', 'err');
+  }
+}
 
+function formatGDELTDate(seendate) {
+  if (!seendate) return '';
+  try {
+    var d = new Date(seendate.replace(/(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})Z/, '$1-$2-$3T$4:$5:$6Z'));
+    return d.toLocaleString('en-GB', { timeZone: CONFIG.dubaiTZ, month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  } catch(e) { return seendate; }
+}
+
+function renderGDELTArticles(articles, maxItems) {
+  if (!articles || articles.length === 0) return '<p style="color:var(--sub);font-size:.85em">No recent articles found via GDELT. Data refreshes every 60s.</p>';
+  var html = '';
+  articles.slice(0, maxItems || 5).forEach(function(a) {
+    html += '<div class="news-item">' +
+      '<a href="' + (a.url || '#') + '" target="_blank" class="headline">' + (a.title || 'Untitled') + '</a>' +
+      '<div><span class="source">' + (a.domain || '') + '</span> <span class="time">' + formatGDELTDate(a.seendate) + '</span></div>' +
+      '</div>';
+  });
+  return html;
+}
+
+// ==========================================
+// DYNAMIC STATUS CARD UPDATES (All cards live)
+// ==========================================
+function updateStatusCards() {
+  // ---- FLIGHTS CARD (OpenSky) ----
+  var dubaiSky = state.opensky.dubai;
+  var flightCard = document.getElementById('cardFlights');
+  if (flightCard && dubaiSky && dubaiSky.count >= 0) {
+    var airborne = dubaiSky.airborne;
+    var status, badge, cls;
+    if (airborne === 0) { status = 'CLOSED'; badge = 'CRITICAL'; cls = 'red'; }
+    else if (airborne < 15) { status = 'LIMITED'; badge = 'RESTRICTED'; cls = 'amber'; }
+    else { status = 'OPERATIONAL'; badge = 'OPEN'; cls = 'green'; }
+    flightCard.className = flightCard.className.replace(/\b(red|amber|green)\b/, cls);
+    flightCard.querySelector('.value').textContent = status;
+    flightCard.querySelector('.detail').textContent = airborne + ' aircraft airborne near Dubai | ' + dubaiSky.count + ' total tracked | Source: OpenSky Network';
+    var bEl = flightCard.querySelector('.badge');
+    bEl.textContent = badge;
+    bEl.className = 'badge badge-' + cls;
+  } else if (flightCard) {
+    flightCard.querySelector('.detail').textContent = 'OpenSky Network: awaiting data... click for live info';
+  }
+
+  // ---- HORMUZ CARD (GDELT) ----
+  var hormuzArticles = state.gdelt.hormuz;
+  var hormuzCard = document.getElementById('cardHormuz');
+  if (hormuzCard && hormuzArticles && hormuzArticles.length > 0) {
+    hormuzCard.querySelector('.detail').textContent = hormuzArticles[0].title;
+    hormuzCard.querySelector('.detail').title = 'Source: ' + (hormuzArticles[0].domain || 'GDELT') + ' | ' + formatGDELTDate(hormuzArticles[0].seendate);
+  }
+
+  // ---- WATER CARD (GDELT) ----
+  var waterArticles = state.gdelt.water;
+  var waterCard = document.getElementById('cardWater');
+  if (waterCard && waterArticles && waterArticles.length > 0) {
+    waterCard.querySelector('.detail').textContent = waterArticles[0].title;
+    waterCard.querySelector('.detail').title = 'Source: ' + (waterArticles[0].domain || 'GDELT') + ' | ' + formatGDELTDate(waterArticles[0].seendate);
+  }
+
+  // ---- DEFENSE CARD (GDELT) ----
+  var defenseArticles = state.gdelt.defense;
+  var defenseCard = document.getElementById('cardDefense');
+  if (defenseCard && defenseArticles && defenseArticles.length > 0) {
+    defenseCard.querySelector('.detail').textContent = defenseArticles[0].title;
+    defenseCard.querySelector('.detail').title = 'Source: ' + (defenseArticles[0].domain || 'GDELT') + ' | ' + formatGDELTDate(defenseArticles[0].seendate);
+    setValidation('valDefense', 'ok');
+  } else {
+    setValidation('valDefense', 'warn');
+  }
+
+  // ---- FOOD CARD (GDELT) ----
+  var foodArticles = state.gdelt.food;
+  var foodCard = document.getElementById('cardFood');
+  if (foodCard && foodArticles && foodArticles.length > 0) {
+    foodCard.querySelector('.detail').textContent = foodArticles[0].title;
+    foodCard.querySelector('.detail').title = 'Source: ' + (foodArticles[0].domain || 'GDELT') + ' | ' + formatGDELTDate(foodArticles[0].seendate);
+  }
+}
+
+// ==========================================
+// EVACUATION ROUTE LIVE UPDATES (OpenSky)
+// ==========================================
+function updateEvacRoutes() {
+  var dubai = state.opensky.dubai;
+  var muscat = state.opensky.muscat;
+
+  // Update DXB flight route card
+  var dxbRoute = document.querySelector('#evacRoutes a[href*="flightradar24.com/data/airports/dxb"]');
+  if (dxbRoute && dubai && dubai.count >= 0) {
+    var a = dubai.airborne;
+    var dot = dxbRoute.querySelector('.route-status');
+    var detail = dxbRoute.querySelector('.rtime');
+    if (a === 0) {
+      dot.className = 'route-status closed'; dot.textContent = '\uD83D\uDD34';
+      detail.textContent = 'Status: CLOSED | 0 aircraft detected | Source: OpenSky Network';
+    } else if (a < 15) {
+      dot.className = 'route-status limited'; dot.textContent = '\uD83D\uDFE1';
+      detail.textContent = 'Status: LIMITED | ' + a + ' aircraft detected | Source: OpenSky Network';
+    } else {
+      dot.className = 'route-status open'; dot.textContent = '\uD83D\uDFE2';
+      detail.textContent = 'Status: OPERATIONAL | ' + a + ' aircraft detected | Source: OpenSky Network';
+    }
+  }
+
+  // Update MCT (Muscat) route card
+  var mctRoute = document.querySelector('#evacRoutes a[href*="flightradar24.com/data/airports/mct"]');
+  if (mctRoute && muscat && muscat.count >= 0) {
+    var m = muscat.airborne;
+    var mDot = mctRoute.querySelector('.route-status');
+    var mDetail = mctRoute.querySelector('.rtime');
+    if (m > 0) {
+      mDot.className = 'route-status open'; mDot.textContent = '\uD83D\uDFE2';
+      mDetail.textContent = 'Status: OPERATIONAL | ' + m + ' aircraft in Muscat area | Source: OpenSky Network';
+    } else {
+      mDot.className = 'route-status limited'; mDot.textContent = '\uD83D\uDFE1';
+      mDetail.textContent = 'Status: NO FLIGHTS DETECTED | Source: OpenSky Network';
+    }
+  }
+
+  // Update Dubai Airports card with live count
+  var dxbAirports = document.querySelector('#evacRoutes a[href*="dubaiairports.ae"]');
+  if (dxbAirports && dubai && dubai.count >= 0) {
+    dxbAirports.querySelector('.rtime').textContent = dubai.airborne + ' aircraft near DXB | Updated: ' + dubaiTimeStr('time') + ' | Source: OpenSky';
+  }
+}
+
+// ==========================================
+// EVACUATION LIVE SIGNALS (Computed from APIs)
+// ==========================================
+function updateEvacRecommendation() {
+  var body = document.getElementById('evacSignalBody');
+  var tsEl = document.getElementById('evacSignalTs');
+  if (!body) return;
+
+  var dubai = state.opensky.dubai;
+  var muscat = state.opensky.muscat;
+  var fujairah = state.opensky.fujairah;
+  var evacArticles = state.gdelt.evacuation || [];
+  var defenseArticles = state.gdelt.defense || [];
+  var roadsArticles = state.gdelt.roads || [];
+  var waterArticles = state.gdelt.water || [];
+
+  var dubaiAirborne = (dubai && dubai.count >= 0) ? dubai.airborne : -1;
+  var muscatAirborne = (muscat && muscat.count >= 0) ? muscat.airborne : -1;
+  var fujairahCount = (fujairah && fujairah.count >= 0) ? fujairah.count : -1;
+
+  var signals = [];
+
+  // Flight signals (OpenSky)
+  if (dubaiAirborne >= 0) {
+    if (dubaiAirborne === 0) signals.push({ icon: '\uD83D\uDD34', label: 'Dubai Airspace (DXB)', value: 'CLOSED \u2014 0 aircraft detected in Dubai bounding box', severity: 'red', source: 'OpenSky Network ADS-B' });
+    else if (dubaiAirborne < 15) signals.push({ icon: '\uD83D\uDFE1', label: 'Dubai Airspace (DXB)', value: 'LIMITED \u2014 ' + dubaiAirborne + ' aircraft airborne', severity: 'amber', source: 'OpenSky Network ADS-B' });
+    else signals.push({ icon: '\uD83D\uDFE2', label: 'Dubai Airspace (DXB)', value: 'OPERATIONAL \u2014 ' + dubaiAirborne + ' aircraft airborne', severity: 'green', source: 'OpenSky Network ADS-B' });
+  } else {
+    signals.push({ icon: '\u26AA', label: 'Dubai Airspace (DXB)', value: 'OpenSky API did not return data \u2014 may be rate-limited (100 req/day anon)', severity: 'gray', source: 'OpenSky Network' });
+  }
+
+  if (muscatAirborne >= 0) {
+    if (muscatAirborne > 0) signals.push({ icon: '\uD83D\uDFE2', label: 'Muscat Airport (MCT)', value: 'OPERATIONAL \u2014 ' + muscatAirborne + ' aircraft detected', severity: 'green', source: 'OpenSky Network ADS-B' });
+    else signals.push({ icon: '\uD83D\uDFE1', label: 'Muscat Airport (MCT)', value: 'No aircraft detected in MCT bounding box', severity: 'amber', source: 'OpenSky Network ADS-B' });
+  }
+
+  if (fujairahCount >= 0) {
+    signals.push({ icon: fujairahCount > 0 ? '\uD83D\uDFE2' : '\uD83D\uDFE1', label: 'Fujairah (FJR)', value: fujairahCount + ' aircraft tracked', severity: fujairahCount > 0 ? 'green' : 'amber', source: 'OpenSky Network ADS-B' });
+  }
+
+  // GDELT news signals
+  if (evacArticles.length > 0) signals.push({ icon: '\uD83D\uDCF0', label: 'Evacuation News (' + evacArticles.length + ')', value: evacArticles[0].title, severity: 'info', source: 'GDELT Project \u2014 ' + (evacArticles[0].domain || '') });
+  if (defenseArticles.length > 0) signals.push({ icon: '\uD83D\uDEE1\uFE0F', label: 'Defense Intel (' + defenseArticles.length + ')', value: defenseArticles[0].title, severity: 'info', source: 'GDELT Project \u2014 ' + (defenseArticles[0].domain || '') });
+  if (waterArticles.length > 0) signals.push({ icon: '\uD83D\uDCA7', label: 'Water/Infrastructure (' + waterArticles.length + ')', value: waterArticles[0].title, severity: 'info', source: 'GDELT Project \u2014 ' + (waterArticles[0].domain || '') });
+  if (roadsArticles.length > 0) signals.push({ icon: '\uD83D\uDEE3\uFE0F', label: 'Road/Border News (' + roadsArticles.length + ')', value: roadsArticles[0].title, severity: 'info', source: 'GDELT Project \u2014 ' + (roadsArticles[0].domain || '') });
+
+  if (signals.length === 0) {
+    body.innerHTML = '<p style="color:var(--sub)">Waiting for data from OpenSky Network &amp; GDELT Project APIs...</p>';
+    return;
+  }
+
+  var html = '<div style="display:grid;gap:8px">';
+  signals.forEach(function(s) {
+    var bc = s.severity === 'red' ? '#5c0000' : s.severity === 'amber' ? '#3d2e00' : s.severity === 'green' ? '#003d00' : 'var(--border)';
+    var bg = s.severity === 'red' ? '#1a0000' : s.severity === 'amber' ? '#1a1a00' : s.severity === 'green' ? '#001a00' : '#0d1117';
+    html += '<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:' + bg + ';border:1px solid ' + bc + ';border-radius:4px">' +
+      '<span style="font-size:1.2em;flex-shrink:0">' + s.icon + '</span>' +
+      '<div style="flex:1;min-width:0"><strong style="font-size:.85em">' + s.label + '</strong>' +
+      '<div style="font-size:.8em;color:var(--sub);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + s.value + '</div>' +
+      '<div style="font-size:.65em;color:var(--sub);font-style:italic">Source: ' + s.source + '</div></div></div>';
+  });
+  html += '</div>';
+  html += '<div style="margin-top:8px;padding:8px;background:#001a33;border:1px solid #004080;border-radius:4px;font-size:.75em;color:var(--sub)">' +
+    '<strong style="color:var(--accent)">LIVE SOURCES:</strong> Aircraft: <a href="https://opensky-network.org" target="_blank">OpenSky Network</a> (real-time ADS-B transponder data, free public API) | ' +
+    'News intelligence: <a href="https://www.gdeltproject.org/" target="_blank">GDELT Project</a> (monitors global news in 65 languages, real-time) | Updated: ' + dubaiTimeStr('time') +
+    '</div>';
+
+  body.innerHTML = html;
+  if (tsEl) tsEl.textContent = dubaiTimeStr('time');
+}
+
+// ==========================================
+// FLIGHT STATUS PANEL (OpenSky Network Live)
+// ==========================================
+async function fetchFlightStatus() {
+  state.dataTimestamps.flights = new Date();
+  renderFlightPanel();
+  var dubaiFlights = state.opensky.dubai;
+  if (dubaiFlights && dubaiFlights.count >= 0) {
+    setValidation('valFlights', dubaiFlights.count > 0 ? 'ok' : 'warn');
+  } else {
+    setValidation('valFlights', 'warn');
+  }
+}
+
+function renderFlightPanel() {
+  var dubaiData = state.opensky.dubai;
+  var muscatData = state.opensky.muscat;
+  var fujairahData = state.opensky.fujairah;
+  var evacNews = state.gdelt.evacuation || [];
+
+  var dubaiAirborne = (dubaiData && dubaiData.count >= 0) ? dubaiData.airborne : -1;
+  var muscatAirborne = (muscatData && muscatData.count >= 0) ? muscatData.airborne : -1;
+  var fujairahCount = (fujairahData && fujairahData.count >= 0) ? fujairahData.count : -1;
+
+  var dubaiColor = dubaiAirborne <= 0 ? '#ff6b6b' : dubaiAirborne < 15 ? '#ffcc00' : '#66ff66';
+  var dubaiText = dubaiAirborne < 0 ? 'NO DATA' : dubaiAirborne === 0 ? 'CLOSED' : dubaiAirborne < 15 ? 'LIMITED' : 'OPERATIONAL';
+  var muscatColor = muscatAirborne <= 0 ? 'var(--sub)' : '#66ff66';
+  var muscatText = muscatAirborne < 0 ? 'NO DATA' : muscatAirborne === 0 ? 'QUIET' : 'OPERATIONAL';
+
+  // Build flight table from OpenSky real ADS-B data
+  var flightRows = '';
+  if (dubaiData && dubaiData.data && dubaiData.data.states) {
+    dubaiData.data.states.slice(0, 25).forEach(function(s) {
+      var callsign = (s[1] || '').trim() || 'N/A';
+      var origin = s[2] || 'Unknown';
+      var alt = s[7] ? Math.round(s[7]) + 'm' : 'Ground';
+      var spd = s[9] ? Math.round(s[9] * 3.6) + ' km/h' : 'N/A';
+      var onGround = s[8];
+      flightRows += '<tr><td><strong>' + callsign + '</strong></td><td>' + origin +
+        '</td><td>' + alt + '</td><td>' + spd +
+        '</td><td><span class="flight-status ' + (onGround ? 'fs-scheduled' : 'fs-active') + '">' +
+        (onGround ? 'GROUND' : 'AIRBORNE') + '</span></td></tr>';
+    });
+  }
+
+  var html = '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px">' +
+    '<div style="padding:12px;background:#0d1117;border:1px solid var(--border);border-radius:6px;text-align:center">' +
+    '<div style="font-size:.7em;color:var(--sub);text-transform:uppercase">Dubai (DXB) Area</div>' +
+    '<div style="font-size:1.5em;font-weight:700;color:' + dubaiColor + '">' + dubaiText + '</div>' +
+    '<div style="font-size:.85em;color:var(--accent);font-family:\'JetBrains Mono\',monospace">' + (dubaiAirborne >= 0 ? dubaiAirborne + ' airborne' : '--') + '</div>' +
+    '<div style="font-size:.65em;color:var(--sub)">Source: OpenSky Network</div></div>' +
+    '<div style="padding:12px;background:#0d1117;border:1px solid var(--border);border-radius:6px;text-align:center">' +
+    '<div style="font-size:.7em;color:var(--sub);text-transform:uppercase">Muscat (MCT) Area</div>' +
+    '<div style="font-size:1.5em;font-weight:700;color:' + muscatColor + '">' + muscatText + '</div>' +
+    '<div style="font-size:.85em;color:var(--accent);font-family:\'JetBrains Mono\',monospace">' + (muscatAirborne >= 0 ? muscatAirborne + ' airborne' : '--') + '</div>' +
+    '<div style="font-size:.65em;color:var(--sub)">Source: OpenSky Network</div></div>' +
+    '<div style="padding:12px;background:#0d1117;border:1px solid var(--border);border-radius:6px;text-align:center">' +
+    '<div style="font-size:.7em;color:var(--sub);text-transform:uppercase">Fujairah (FJR) Area</div>' +
+    '<div style="font-size:1.5em;font-weight:700;color:var(--sub)">' + (fujairahCount >= 0 ? fujairahCount + ' tracked' : 'NO DATA') + '</div>' +
+    '<div style="font-size:.65em;color:var(--sub)">Source: OpenSky Network</div></div></div>';
+
+  if (flightRows) {
+    html += '<div style="margin-bottom:16px">' +
+      '<strong style="font-size:.85em">\u2708\uFE0F Live Aircraft in Dubai Area \u2014 Real-Time ADS-B Transponder Data (OpenSky Network):</strong>' +
+      '<table class="flight-table" style="margin-top:8px"><tr><th>Callsign</th><th>Origin</th><th>Altitude</th><th>Speed</th><th>Status</th></tr>' +
+      flightRows + '</table>' +
+      '<p style="font-size:.7em;color:var(--sub);margin-top:4px">Showing up to 25 aircraft. Bounding box: 24.5-26.0\u00b0N, 54.5-56.0\u00b0E. Updated: ' + dubaiTimeStr('time') + '</p></div>';
+  } else if (dubaiAirborne === 0) {
+    html += '<div style="padding:12px;background:#1a0000;border:1px solid #5c0000;border-radius:6px;margin-bottom:16px;font-size:.9em;color:#ff6b6b;font-weight:700">' +
+      'NO AIRCRAFT DETECTED IN DUBAI AIRSPACE \u2014 OpenSky ADS-B shows zero transponders in bounding box. Airspace likely CLOSED or severely restricted.</div>';
+  } else if (dubaiAirborne < 0) {
+    html += '<div style="padding:12px;background:#1a1a00;border:1px solid #3d3d00;border-radius:6px;margin-bottom:16px;font-size:.85em;color:#ffcc00">' +
+      'OpenSky Network API did not return data. Possible causes: rate limit (100 req/day for anonymous users), network timeout, or CORS proxy issue. Use the links below to verify manually.</div>';
+  }
+
+  // GDELT evacuation news
+  if (evacNews.length > 0) {
+    html += '<div style="margin-bottom:16px"><strong style="font-size:.85em">\uD83D\uDCF0 Aviation & Evacuation News \u2014 GDELT Project (Real-Time):</strong>' +
+      renderGDELTArticles(evacNews, 3) + '</div>';
+  }
+
+  // Live tracking links (manual verify)
+  html += '<div style="margin-bottom:16px"><strong style="font-size:.85em">Verify & Book \u2014 Live Flight Tracking:</strong>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">' +
+    '<a href="https://www.flightradar24.com/data/airports/dxb/departures" target="_blank" style="padding:10px;background:#0d1117;border:1px solid var(--border);border-radius:4px;display:block;font-size:.85em"><strong>DXB Departures</strong><br><span style="color:var(--sub)">FlightRadar24 Live</span></a>' +
+    '<a href="https://www.flightradar24.com/data/airports/auh/departures" target="_blank" style="padding:10px;background:#0d1117;border:1px solid var(--border);border-radius:4px;display:block;font-size:.85em"><strong>AUH Departures</strong><br><span style="color:var(--sub)">Abu Dhabi FlightRadar24</span></a>' +
+    '<a href="https://www.flightradar24.com/data/airports/mct/departures" target="_blank" style="padding:10px;background:#0d1117;border:1px solid var(--border);border-radius:4px;display:block;font-size:.85em"><strong>MCT Departures</strong><br><span style="color:var(--sub)">Muscat (EVAC ROUTE)</span></a>' +
+    '<a href="https://www.flightradar24.com/data/airports/fjr/departures" target="_blank" style="padding:10px;background:#0d1117;border:1px solid var(--border);border-radius:4px;display:block;font-size:.85em"><strong>FJR Status</strong><br><span style="color:var(--sub)">Fujairah (EVAC ROUTE)</span></a>' +
+    '</div></div>';
+
+  html += '<div style="margin-bottom:16px"><strong style="font-size:.85em">Airline Contact / Rebooking:</strong>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">' +
+    '<a href="https://www.emirates.com/manage-booking/" target="_blank" style="padding:8px;background:#0d1117;border:1px solid var(--border);border-radius:4px;display:block;font-size:.85em">Emirates \u2014 Manage Booking</a>' +
+    '<a href="https://www.etihad.com/en/help" target="_blank" style="padding:8px;background:#0d1117;border:1px solid var(--border);border-radius:4px;display:block;font-size:.85em">Etihad \u2014 Help Center</a>' +
+    '<a href="https://www.flydubai.com/en/manage" target="_blank" style="padding:8px;background:#0d1117;border:1px solid var(--border);border-radius:4px;display:block;font-size:.85em">FlyDubai \u2014 Manage</a>' +
+    '<a href="https://www.dubaiairports.ae/flight-information" target="_blank" style="padding:8px;background:#0d1117;border:1px solid var(--border);border-radius:4px;display:block;font-size:.85em">Dubai Airports \u2014 Official</a>' +
+    '</div></div>';
+
+  html += '<div style="padding:10px;background:#001a33;border:1px solid #004080;border-radius:6px;font-size:.8em;color:var(--sub)">' +
+    '<strong style="color:var(--accent)">DATA SOURCES:</strong> Aircraft positions: <a href="https://opensky-network.org" target="_blank">OpenSky Network</a> (real-time ADS-B transponder data, free public API, 100 req/day anonymous). ' +
+    'News: <a href="https://www.gdeltproject.org/" target="_blank">GDELT Project</a> (real-time global news intelligence). Refreshed every 60s.</div>';
+
+  document.getElementById('flightPanel').innerHTML = html;
   document.getElementById('flightTs').textContent = dubaiTimeStr('time');
 }
 
 // ==========================================
-// HORMUZ / SHIPPING STATUS
+// HORMUZ / SHIPPING PANEL (GDELT Live)
 // ==========================================
 async function fetchHormuzStatus() {
   state.dataTimestamps.hormuz = new Date();
-  renderHormuzStatus();
-  setValidation('valHormuz', 'warn');
+  renderHormuzPanel();
+  var hormuzArticles = state.gdelt.hormuz;
+  setValidation('valHormuz', (hormuzArticles && hormuzArticles.length > 0) ? 'ok' : 'warn');
 }
 
-function renderHormuzStatus() {
-  document.getElementById('hormuzPanel').innerHTML = `
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
-      <div style="padding:12px;background:#1a0000;border:1px solid #5c0000;border-radius:6px">
-        <div style="font-size:.75em;color:#ff6b6b;text-transform:uppercase;letter-spacing:1px">Strait of Hormuz</div>
-        <div style="font-size:1.4em;font-weight:700;color:#ff6b6b;margin:4px 0">BLOCKED</div>
-        <div style="font-size:.8em;color:var(--sub)">IRGC radio ban on transit. Traffic down 70%. ~170 container ships trapped.</div>
-      </div>
-      <div style="padding:12px;background:#1a1a00;border:1px solid #3d3d00;border-radius:6px">
-        <div style="font-size:.75em;color:#ffcc00;text-transform:uppercase;letter-spacing:1px">Jebel Ali Port</div>
-        <div style="font-size:1.4em;font-weight:700;color:#ffcc00;margin:4px 0">OPERATIONAL</div>
-        <div style="font-size:.8em;color:var(--sub)">Resumed Mar 1. All 4 DP World terminals active. Vulnerable to future strikes.</div>
-      </div>
-    </div>
+function renderHormuzPanel() {
+  var articles = state.gdelt.hormuz || [];
 
-    <div style="margin-bottom:12px">
-      <strong style="font-size:.85em">Live Maritime Tracking:</strong>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
-        <a href="https://www.marinetraffic.com/en/ais/home/centerx/56.3/centery/26.5/zoom/8" target="_blank"
-           style="padding:8px;background:#0d1117;border:1px solid var(--border);border-radius:4px;display:block;font-size:.85em">
-          <strong>Strait of Hormuz</strong><br><span style="color:var(--sub)">MarineTraffic Live Map</span>
-        </a>
-        <a href="https://www.marinetraffic.com/en/ais/home/centerx/55.1/centery/25.0/zoom/11" target="_blank"
-           style="padding:8px;background:#0d1117;border:1px solid var(--border);border-radius:4px;display:block;font-size:.85em">
-          <strong>Jebel Ali Port</strong><br><span style="color:var(--sub)">MarineTraffic Live Map</span>
-        </a>
-      </div>
-    </div>
+  var html = '<div style="margin-bottom:16px">' +
+    '<strong style="font-size:.85em">\uD83C\uDF0A Strait of Hormuz \u2014 Latest Intelligence (GDELT Project \u2014 Real-Time):</strong>' +
+    renderGDELTArticles(articles, 5) +
+    '</div>';
 
-    <div style="font-size:.8em;color:var(--sub)">
-      <strong>Key stats:</strong> 450K TEU stranded. Maersk, MSC, Hapag-Lloyd suspended crossings. Cape reroute adds 10-15 days + $1M/voyage.
-      Fujairah port bypasses Hormuz — alternative route operational.
-    </div>`;
+  html += '<div style="margin-bottom:12px"><strong style="font-size:.85em">Live Maritime Tracking (Manual Verify):</strong>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">' +
+    '<a href="https://www.marinetraffic.com/en/ais/home/centerx/56.3/centery/26.5/zoom/8" target="_blank" style="padding:8px;background:#0d1117;border:1px solid var(--border);border-radius:4px;display:block;font-size:.85em"><strong>Strait of Hormuz</strong><br><span style="color:var(--sub)">MarineTraffic AIS Live Map</span></a>' +
+    '<a href="https://www.marinetraffic.com/en/ais/home/centerx/55.1/centery/25.0/zoom/11" target="_blank" style="padding:8px;background:#0d1117;border:1px solid var(--border);border-radius:4px;display:block;font-size:.85em"><strong>Jebel Ali Port</strong><br><span style="color:var(--sub)">MarineTraffic AIS Live Map</span></a>' +
+    '</div></div>';
 
+  html += '<div style="padding:10px;background:#001a33;border:1px solid #004080;border-radius:6px;font-size:.8em;color:var(--sub)">' +
+    '<strong style="color:var(--accent)">DATA SOURCES:</strong> News: <a href="https://www.gdeltproject.org/" target="_blank">GDELT Project</a> (processes news from 100+ countries in 65 languages, real-time). ' +
+    'Vessel tracking: <a href="https://www.marinetraffic.com" target="_blank">MarineTraffic</a> (AIS transponder data). Refreshed every 60s.</div>';
+
+  document.getElementById('hormuzPanel').innerHTML = html;
   document.getElementById('hormuzTs').textContent = dubaiTimeStr('time');
 }
 
@@ -1452,17 +1793,18 @@ function toggleCollapse(el) {
 // VALIDATION SUMMARY
 // ==========================================
 function updateValidation() {
-  const checks = ['valWeather', 'valCurrency', 'valNews', 'valFlights', 'valHormuz', 'valDefense'];
+  const checks = ['valWeather', 'valCurrency', 'valNews', 'valFlights', 'valHormuz', 'valDefense', 'valOpenSky', 'valGDELT'];
   let ok = 0, warn = 0, err = 0;
   checks.forEach(id => {
     const el = document.getElementById(id);
+    if (!el) return;
     if (el.classList.contains('val-ok')) ok++;
     else if (el.classList.contains('val-warn')) warn++;
     else err++;
   });
 
   const summary = document.getElementById('validationSummary');
-  summary.textContent = `${ok} live | ${warn} linked | ${err} offline | Last: ${dubaiTimeStr('time')}`;
+  summary.textContent = `${ok} live | ${warn} pending | ${err} offline | Last: ${dubaiTimeStr('time')}`;
 }
 
 // ==========================================
@@ -1476,15 +1818,27 @@ async function refreshAll() {
   document.getElementById('lastRefresh').textContent = 'Refreshing...';
 
   try {
+    // Phase 1: Fetch all raw data from APIs in parallel
     await Promise.allSettled([
       fetchWeather(),
       fetchCurrency(),
       fetchNews(),
-      fetchFlightStatus(),
-      fetchHormuzStatus()
+      fetchOpenSkyData(),
+      fetchGDELTTopics()
     ]);
   } catch (e) {
-    console.error('Refresh error:', e);
+    console.error('Refresh phase 1 error:', e);
+  }
+
+  try {
+    // Phase 2: Render panels + update cards using fetched data
+    fetchFlightStatus();
+    fetchHormuzStatus();
+    updateStatusCards();
+    updateEvacRoutes();
+    updateEvacRecommendation();
+  } catch (e) {
+    console.error('Refresh phase 2 error:', e);
   }
 
   state.lastRefresh = new Date();
@@ -1526,10 +1880,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initChecklists();
   initAutoRefresh();
 
-  // Set defense validation to warn (no live API, sourced from assessment)
-  setValidation('valDefense', 'warn');
-
-  // Initial data fetch
+  // Initial data fetch (all APIs: Open-Meteo, ExchangeRate, Google News RSS, OpenSky Network, GDELT Project)
   refreshAll();
 });
 </script>
