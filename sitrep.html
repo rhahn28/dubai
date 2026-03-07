@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SITREP: Operation Epic Fury — March 7, 2026</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;600;700;900&family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'DM Sans',sans-serif;color:#1a1a2e;background:#f0f0f5;line-height:1.6}
+.banner{background:linear-gradient(135deg,#0d1117 0%,#1a1a2e 40%,#8b0000 100%);color:#fff;padding:40px 60px;position:relative;overflow:hidden}
+.banner::after{content:'';position:absolute;top:0;right:0;width:300px;height:100%;background:repeating-linear-gradient(45deg,transparent,transparent 10px,rgba(255,255,255,.02) 10px,rgba(255,255,255,.02) 20px)}
+.banner .classification{background:#ff0000;color:#fff;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:3px;padding:4px 16px;display:inline-block;margin-bottom:16px;text-transform:uppercase}
+.banner h1{font-family:'Source Serif 4',serif;font-size:36px;font-weight:900;margin-bottom:6px;text-shadow:2px 2px 8px rgba(0,0,0,.5)}
+.banner .subtitle{font-size:18px;opacity:.85;margin-bottom:8px}
+.banner .meta{font-family:'JetBrains Mono',monospace;font-size:12px;opacity:.6;margin-top:12px}
+.container{max-width:1100px;margin:0 auto;padding:30px 40px}
+.toc{background:#fff;border-radius:8px;padding:28px 36px;margin-bottom:30px;box-shadow:0 2px 12px rgba(0,0,0,.06);border-left:5px solid #8b0000}
+.toc h2{font-family:'Source Serif 4',serif;font-size:20px;color:#8b0000;margin-bottom:14px}
+.toc ol{padding-left:20px}.toc li{margin:5px 0}.toc a{color:#1a1a2e;text-decoration:none;font-size:14px}.toc a:hover{color:#8b0000;text-decoration:underline}
+section{background:#fff;border-radius:8px;padding:32px 40px;margin-bottom:24px;box-shadow:0 2px 12px rgba(0,0,0,.06)}
+section h2{font-family:'Source Serif 4',serif;font-size:24px;color:#1a1a2e;border-bottom:3px solid #8b0000;padding-bottom:10px;margin-bottom:20px}
+section h3{font-family:'Source Serif 4',serif;font-size:18px;color:#4a0000;margin:20px 0 10px}
+section h4{font-size:15px;color:#555;margin:14px 0 8px;font-weight:700}
+p{margin-bottom:12px;font-size:15px}
+table{width:100%;border-collapse:collapse;margin:16px 0;font-size:14px}
+th{background:#1a1a2e;color:#fff;padding:10px 14px;text-align:left;font-weight:600}
+td{padding:9px 14px;border-bottom:1px solid #e0e0e0}
+tr:nth-child(even){background:#f7f7fc}
+.risk-critical{background:#ff0000;color:#fff;padding:2px 10px;border-radius:3px;font-weight:700;font-size:12px}
+.risk-high{background:#ff4500;color:#fff;padding:2px 10px;border-radius:3px;font-weight:700;font-size:12px}
+.risk-elevated{background:#ff8c00;color:#fff;padding:2px 10px;border-radius:3px;font-weight:700;font-size:12px}
+.risk-moderate{background:#ffd700;color:#111;padding:2px 10px;border-radius:3px;font-weight:700;font-size:12px}
+.risk-low{background:#228b22;color:#fff;padding:2px 10px;border-radius:3px;font-weight:700;font-size:12px}
+.callout{background:#fff3f3;border-left:5px solid #8b0000;padding:16px 22px;margin:16px 0;border-radius:0 6px 6px 0}
+.callout-blue{background:#f0f4ff;border-left:5px solid #1a4a8a}
+.callout-amber{background:#fffaf0;border-left:5px solid #ff8c00}
+.callout-green{background:#f0fff0;border-left:5px solid #228b22}
+.prob-bar{height:20px;border-radius:4px;margin:4px 0 8px;position:relative}
+.prob-fill{height:100%;border-radius:4px;display:flex;align-items:center;padding-left:8px;font-size:11px;font-weight:700;color:#fff}
+.route-card{border:2px solid #ddd;border-radius:8px;padding:20px;margin:14px 0;position:relative}
+.route-card.priority{border-color:#228b22;background:#f6fff6}
+.route-card.secondary{border-color:#ff8c00;background:#fffcf5}
+.route-card.emergency{border-color:#8b0000;background:#fff8f8}
+.route-num{position:absolute;top:-14px;left:20px;background:#1a1a2e;color:#fff;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin:16px 0}
+.stat-box{background:#f5f5fa;border-radius:8px;padding:16px;text-align:center;border:1px solid #e0e0e0}
+.stat-box .number{font-family:'Source Serif 4',serif;font-size:32px;font-weight:900;color:#8b0000}
+.stat-box .label{font-size:12px;color:#666;margin-top:4px}
+.timeline-item{display:flex;gap:16px;margin:12px 0;padding:12px;border-radius:6px;background:#f8f8fc}
+.timeline-date{min-width:80px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#666;padding-top:2px}
+.timeline-content{flex:1;font-size:14px}
+.footer{text-align:center;padding:24px;font-size:12px;color:#888;font-family:'JetBrains Mono',monospace}
+@media print{body{background:#fff}.banner{background:#1a1a2e!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}section{break-inside:avoid;box-shadow:none;border:1px solid #ddd}}
+</style>
+</head>
+<body>
+
+<div class="banner">
+<div class="classification">SENSITIVE — PERSONAL PREPAREDNESS USE ONLY</div>
+<h1>SITUATION REPORT: OPERATION EPIC FURY</h1>
+<div class="subtitle">US-ISRAEL STRIKES ON IRAN — DAY 7 ASSESSMENT</div>
+<div class="subtitle" style="font-size:14px;opacity:.7">Updated March 7, 2026 • Dubai Evacuation Routes • Poland Military Evacuation Ops • Mass Exodus Probability • Real Estate Impact</div>
+<div class="meta">Prepared for: Roger Hahn | Optimized for: Polish national w/ minor child in Dubai | Sources: CNN, Al Jazeera, ACLED, Critical Threats, Reuters, Notes From Poland, Polish MFA, Aviation Week, Wikipedia Timeline</div>
+</div>
+
+<div class="container">
+
+<!-- TOC -->
+<div class="toc">
+<h2>Table of Contents</h2>
+<ol>
+<li><a href="#exec">Executive Summary — Day 7 Battlespace</a></li>
+<li><a href="#defense">Air Defense & Interceptor Status</a></li>
+<li><a href="#fronts">New Fronts: Kurdish Rebellion & Azerbaijan</a></li>
+<li><a href="#negotiations">Iranian Refusal to Negotiate</a></li>
+<li><a href="#routes">5 Evacuation Routes from Dubai (72-Hour Window) + Poland-Optimized Plan</a></li>
+<li><a href="#mass-evac">Mass Evacuation Probability — 90% Expat Population</a></li>
+<li><a href="#refugee">Refugee Status & Legal Framework</a></li>
+<li><a href="#timeline">Probability Timeline: Days 7–60</a></li>
+<li><a href="#realestate">Real Estate Impact Report</a></li>
+<li><a href="#social">UAE Social Media Crackdown & Information Control</a></li>
+<li><a href="#contacts">Emergency Contacts & Resources</a></li>
+</ol>
+</div>
+
+<!-- §1 EXECUTIVE SUMMARY -->
+<section id="exec">
+<h2>1. Executive Summary — Day 7 Battlespace</h2>
+
+<div class="stat-grid">
+<div class="stat-box"><div class="number">7</div><div class="label">Days of Conflict</div></div>
+<div class="stat-box"><div class="number">1,000+</div><div class="label">Killed in Iran (est.)</div></div>
+<div class="stat-box"><div class="number">300+</div><div class="label">Iranian Launchers Destroyed (IDF claim)</div></div>
+<div class="stat-box"><div class="number">863+</div><div class="label">Missiles/Drones Fired at UAE</div></div>
+<div class="stat-box"><div class="number">3</div><div class="label">UAE Fatalities</div></div>
+<div class="stat-box"><div class="number">58+</div><div class="label">UAE Injuries</div></div>
+</div>
+
+<p><strong>OPERATION OVERVIEW:</strong> Joint US-Israeli strikes began 9:45 AM IRST (1:15 AM EST) on Saturday, February 28, 2026. The opening salvo killed Supreme Leader Ali Khamenei and dozens of senior military and intelligence figures. ACLED records hundreds of strikes across at least 26 of Iran's 31 provinces. The IDF claims destruction of 300+ missile launchers and a secret nuclear weapons development facility at "Min Zadai" near Tehran. Natanz nuclear facility also reportedly struck.</p>
+
+<p><strong>DAY 7 KEY DEVELOPMENTS (March 6):</strong> Israel launched a "broad wave" of strikes on Tehran targeting regime infrastructure, with additional strikes in Beirut's southern suburbs. Iran responded with retaliatory strikes on Israel. Trump demanded Iran's "unconditional surrender," writing on Truth Social: "There will be no deal with Iran except UNCONDITIONAL SURRENDER!" Iran's Foreign Minister Araghchi rejected any ceasefire or new talks. Defense Secretary Hegseth stated the US is "just getting started" and "accelerating, not decelerating."</p>
+
+<table>
+<tr><th>Parameter</th><th>Day 1 (Feb 28)</th><th>Day 7 (Mar 6)</th><th>Trend</th></tr>
+<tr><td>UAE Airspace</td><td>CLOSED</td><td>LIMITED ops (~10-20% capacity)</td><td>Slowly improving</td></tr>
+<tr><td>Iranian Missile Fire Rate</td><td>~400 missiles + 1,000 drones (Day 1-2)</td><td>70% reduction (IDF claim)</td><td>Degrading sharply</td></tr>
+<tr><td>THAAD Status (UAE)</td><td>2 batteries operational</td><td>Both reportedly struck; radars damaged</td><td><span class="risk-critical">CRITICAL</span></td></tr>
+<tr><td>Strait of Hormuz</td><td>Contested</td><td>UK deploying frigate; trade disrupted</td><td><span class="risk-high">HIGH RISK</span></td></tr>
+<tr><td>Kurdish Front</td><td>Coalition formed (Feb 22)</td><td>Ground offensive underway; CIA arming talks</td><td>Escalating</td></tr>
+<tr><td>Lebanon Front</td><td>Hezbollah rockets begin (Mar 2)</td><td>Israeli ground incursion; 83K+ displaced</td><td>Escalating</td></tr>
+<tr><td>Mojtaba Khamenei</td><td>Reportedly survived strike</td><td>Assembly of Experts named him successor</td><td>Power vacuum filling</td></tr>
+<tr><td>Negotiations</td><td>Trump "accepted" Iranian proposal (Mar 1)</td><td>Both sides reject talks</td><td><span class="risk-critical">DEAD</span></td></tr>
+</table>
+</section>
+
+<!-- §2 AIR DEFENSE -->
+<section id="defense">
+<h2>2. Air Defense & Interceptor Status</h2>
+
+<h3>UAE Interception Record (Days 1–5 cumulative)</h3>
+<table>
+<tr><th>Threat Type</th><th>Launched at UAE</th><th>Intercepted</th><th>Rate</th><th>Penetrated</th></tr>
+<tr><td>Ballistic Missiles</td><td>174</td><td>161</td><td>92.5%</td><td>13 (some fell at sea)</td></tr>
+<tr><td>Cruise Missiles</td><td>2</td><td>2</td><td>100%</td><td>0</td></tr>
+<tr><td>Drones (Shahed-type)</td><td>689</td><td>645</td><td>93.6%</td><td>21+ struck civilian targets</td></tr>
+<tr><td><strong>TOTAL</strong></td><td><strong>863+</strong></td><td><strong>808+</strong></td><td><strong>~93.6%</strong></td><td><strong>~55 penetrations</strong></td></tr>
+</table>
+
+<div class="callout">
+<strong>CRITICAL: THAAD DEGRADATION</strong><br>
+Satellite imagery (CNN, March 5) confirms Iran struck THAAD radar installations at Al Ruwais (UAE) and a THAAD battery near Abu Dhabi. The AN/TPY-2 radar is the "heart" of the THAAD battery — it cannot be easily replaced. Only ~10 THAAD batteries exist worldwide. The AN/FPS-132 early-warning radar at Al Udeid Air Base (Qatar) was also struck, degrading the entire region's ballistic missile detection capability. Iran has disproportionately targeted the UAE with 863+ missiles/drones — 8× more than directed at Israel (113).
+</div>
+
+<h3>Interceptor Depletion Concerns</h3>
+<p>During the June 2025 12-day war, the US fired ~150 THAAD interceptors, consuming approximately 25% of total US THAAD stocks. Each THAAD interceptor costs ~$12.7 million. A typical battery carries only 48 interceptors across 6 launchers. Secretary of State Rubio acknowledged Iran can "churn out many more offensive weapons than the US and its allies can build interceptors." The US FY2026 budget allocates $840.1 million for THAAD procurement — a record — but production at Troy, Alabama cannot quickly scale. Pentagon leaks suggest US stocks of critical missiles could run low if strikes continue beyond 10 days. Europe is deploying interceptors to the Gulf, and Ukrainian counter-drone expertise (the $2,100 "Sting" interceptor drone) is being offered.</p>
+
+<h3>Defense Degradation Probability (Next 7 Days)</h3>
+<table>
+<tr><th>Scenario</th><th>Probability</th><th>Implication for Dubai</th></tr>
+<tr><td>THAAD radars restored / US resupply</td><td>30%</td><td>Interception rate recovers to 90%+</td></tr>
+<tr><td>Patriot + Pantsir hold steady; THAAD degraded</td><td>45%</td><td>Interception rate drops to 80-85%; more drone penetrations</td></tr>
+<tr><td>Sustained Iranian barrages exhaust interceptors</td><td>20%</td><td>Interception drops to 60-70%; significant civilian hits</td></tr>
+<tr><td>Iran depletes own missile stocks first</td><td>5%</td><td>Conflict winds down from Iranian exhaustion</td></tr>
+</table>
+</section>
+
+<!-- §3 NEW FRONTS -->
+<section id="fronts">
+<h2>3. New Fronts: Kurdish Rebellion & Azerbaijan</h2>
+
+<h3>Kurdish Ground Offensive</h3>
+<p>On February 22, 2026 — six days before the strikes — five major Iranian Kurdish parties formed the Coalition of Political Forces of Iranian Kurdistan (CPFIK): PDKI, PAK, PJAK, Khabat, and Komala of the Toilers. The Komala Party of Iranian Kurdistan joined as the sixth member on March 4. The coalition's stated aim: topple the Iranian regime and achieve Kurdish self-determination in Eastern Kurdistan.</p>
+
+<p><strong>Military Developments:</strong></p>
+<p>PJAK fighters began taking combat positions inside Iranian territory on the night of March 2. Iranian forces reportedly evacuated the border city of Mariwan on March 3. The Wall Street Journal reported Trump is open to supporting armed Kurdish militias. CNN reported the CIA is negotiating to arm Kurdish groups to stretch Iranian forces and potentially seize northern Iran as an Israeli buffer. Trump has personally called Kurdish leaders: Masoud Barzani (KDP), Bafel Talabani (PUK), and Mustafa Hijri (KDPI).</p>
+
+<p><strong>Force Strength:</strong> PJAK's armed wing (YRK) has approximately 1,000–3,000 fighters, including its women's wing (HPJ). PAK has ~1,000 fighters trained by US forces during anti-ISIS campaigns. KDPI fields several hundred Peshmerga. Combined CPFIK forces: estimated 3,000–5,000 fighters capable of small-unit infiltration through the Zagros Mountains. US strikes have already destroyed hundreds of Iranian security force positions in Kurdish-majority western provinces, potentially "paving the way for a Kurdish advance." The human rights organization Hengaw reports hundreds of Iranian security personnel killed in Kurdish regions.</p>
+
+<div class="callout-blue callout">
+<strong>AZERBAIJAN / NAKHCHIVAN FRONT:</strong> For the first time, Iranian UAVs struck Azerbaijani territory in the Nakhchivan exclave — two suicide drones landed near a school and the local airport. Azerbaijan has officially joined the circle of states affected by Iranian fire. Iranian Su-24 fighter jets also attempted to strike Al-Udeid Air Base in Qatar — the first direct aerial attack attempt using manned aircraft. The war is spreading geographically. The Lebanese government has banned Hezbollah military activities and ordered arrest of anyone with IRGC ties. Lebanon reinstated visa requirements for Iranian citizens.
+</div>
+
+<h3>Kurdish Rebellion Probability Assessment</h3>
+<table>
+<tr><th>Scenario</th><th>Probability</th><th>Impact</th></tr>
+<tr><td>Full CIA-backed Kurdish insurgency in western Iran</td><td>55%</td><td>Forces IRGC to fight on two fronts; accelerates regime collapse</td></tr>
+<tr><td>Limited Kurdish cross-border raids; no sustained offensive</td><td>30%</td><td>Harassment only; IRGC contains with existing forces</td></tr>
+<tr><td>Turkey intervenes against PKK/PJAK; complicates US plans</td><td>10%</td><td>NATO crisis; Kurdish offensive collapses</td></tr>
+<tr><td>Full Kurdish autonomous zone established in western Iran</td><td>5%</td><td>Geopolitical earthquake; precedent for broader separatism</td></tr>
+</table>
+</section>
+
+<!-- §4 NEGOTIATIONS -->
+<section id="negotiations">
+<h2>4. Iranian Refusal to Negotiate</h2>
+
+<p><strong>Timeline of Collapse:</strong></p>
+
+<div class="timeline-item">
+<div class="timeline-date">Feb 6</div>
+<div class="timeline-content">US-Iran indirect nuclear talks held in Muscat, Oman. Described as "good start."</div>
+</div>
+<div class="timeline-item">
+<div class="timeline-date">Feb 25</div>
+<div class="timeline-content">Iran FM Araghchi calls agreement "within reach." Second round scheduled for Geneva.</div>
+</div>
+<div class="timeline-item">
+<div class="timeline-date">Feb 27</div>
+<div class="timeline-content">Oman FM announces "breakthrough" — Iran agrees to never stockpile enriched uranium, full IAEA verification.</div>
+</div>
+<div class="timeline-item">
+<div class="timeline-date">Feb 28</div>
+<div class="timeline-content"><strong>US-ISRAEL STRIKE.</strong> All negotiations destroyed. Khamenei killed.</div>
+</div>
+<div class="timeline-item">
+<div class="timeline-date">Mar 1</div>
+<div class="timeline-content">Ali Larijani rules out talks. Mojtaba Khamenei named successor. Trump says US "accepted" Iranian proposal but operations to continue for 4 weeks.</div>
+</div>
+<div class="timeline-item">
+<div class="timeline-date">Mar 3</div>
+<div class="timeline-content">Iranian Minister of Intelligence denies any ceasefire/peace contacts (NYT). Senior advisor Mohamed Mokhber denies regime requested negotiations.</div>
+</div>
+<div class="timeline-item">
+<div class="timeline-date">Mar 5</div>
+<div class="timeline-content">Iran FM Araghchi says Iran is "not asking for a ceasefire." Denies any back-channel contact. Iran says it's ready for US ground invasion.</div>
+</div>
+<div class="timeline-item">
+<div class="timeline-date">Mar 6</div>
+<div class="timeline-content">Trump demands "UNCONDITIONAL SURRENDER." "MAKE IRAN GREAT AGAIN (MIGA!)." Negotiations are dead.</div>
+</div>
+
+<div class="callout">
+<strong>ASSESSMENT:</strong> There is effectively zero chance of a negotiated ceasefire in the next 14 days. Both sides have maximized their positions beyond any diplomatic off-ramp. Iran cannot negotiate under a new, untested successor supreme leader while being actively bombed. The US has staked political capital on regime change language. The war will continue until one side exhausts its military capability or internal collapse forces capitulation. Probability of ceasefire before Day 30: <strong>8%</strong>.
+</div>
+</section>
+
+<!-- §5 EVACUATION ROUTES -->
+<section id="routes">
+<h2>5. Five Evacuation Routes from Dubai (72-Hour Window)</h2>
+
+<div class="callout-amber callout">
+<strong>SITUATION AS OF MARCH 6-7:</strong> DXB operating at ~10-20% capacity. Emirates operating limited flights; passengers contacted directly. Over 90% of scheduled flights still cancelled. More than 20,000 transit passengers housed in hotels. Private jet charters: $85,000–$235,000. Oman route now primary land corridor — 4.5 to 6 hour drive plus 3-4 hour border wait. Riyadh emerging as secondary hub (~10 hours by road). Scammers active offering fake "emergency evacuation" services.
+</div>
+
+<!-- ROUTE 1 -->
+<div class="route-card priority">
+<div class="route-num">1</div>
+<h3>ROUTE 1: Dubai → Oman (Hatta Border) → Muscat Airport → International</h3>
+<h4>RECOMMENDED PRIMARY ROUTE — Highest probability of success</h4>
+<table>
+<tr><th>Segment</th><th>Distance</th><th>Normal Time</th><th>Crisis Time (est.)</th><th>Cost</th></tr>
+<tr><td>Dubai → Hatta Border (E44)</td><td>140 km</td><td>1hr 40min</td><td>3–5 hours (heavy traffic)</td><td>Fuel ~AED 50</td></tr>
+<tr><td>Hatta Border Crossing</td><td>—</td><td>30-60 min</td><td>3–6 hours (crisis queue)</td><td>AED 35 exit + Oman visa</td></tr>
+<tr><td>Border → Muscat Airport</td><td>~350 km</td><td>3.5 hours</td><td>4–5 hours</td><td>Fuel ~AED 100</td></tr>
+<tr><td>Muscat → Istanbul (commercial)</td><td>Flight</td><td>5 hours</td><td>Available; sold at premium</td><td>$800–$3,000</td></tr>
+<tr><td><strong>TOTAL</strong></td><td>~490 km + flight</td><td>~11 hours</td><td>~15–22 hours</td><td><strong>$1,500–$4,000</strong></td></tr>
+</table>
+<p><strong>Requirements:</strong> Valid passport (6+ months), UAE exit fee AED 35/person, Oman visa (eVisa recommended via evisa.rop.gov.om — many nationalities visa-on-arrival), vehicle insurance Orange Card, car registration. Rental cars need NOC from agency + Oman insurance.</p>
+<p><strong>Current Status:</strong> Muscat International Airport operating normally. Oman Air has INCREASED flights to Europe and Saudi Arabia. Oman has seen minimal Iranian strikes (5 injuries only). Private security firms charging $5,000 per car for fast-track transfers.</p>
+<p><strong>Probability of success: 75%</strong></p>
+</div>
+
+<!-- ROUTE 2 -->
+<div class="route-card secondary">
+<div class="route-num">2</div>
+<h3>ROUTE 2: Dubai → Fujairah/East Coast → Khatmat Malaha Border → Oman</h3>
+<h4>ALTERNATE LAND ROUTE — Avoids Hatta congestion</h4>
+<table>
+<tr><th>Segment</th><th>Distance</th><th>Normal Time</th><th>Crisis Time (est.)</th><th>Cost</th></tr>
+<tr><td>Dubai → Fujairah (E88/E84)</td><td>130 km</td><td>1.5 hours</td><td>2–3 hours</td><td>Fuel ~AED 50</td></tr>
+<tr><td>Fujairah → Khatmat Malaha Border</td><td>40 km</td><td>30 min</td><td>1–3 hours</td><td>—</td></tr>
+<tr><td>Border → Muscat</td><td>~380 km</td><td>4 hours</td><td>4–5 hours</td><td>Fuel ~AED 110</td></tr>
+<tr><td><strong>TOTAL to Muscat</strong></td><td>~550 km</td><td>~7 hours</td><td>~10–16 hours</td><td><strong>~$1,500–$4,000 (incl. flight)</strong></td></tr>
+</table>
+<p><strong>Advantage:</strong> 24-hour border. Less congested than Hatta. Coastal route through Sharjah provides alternate path if E44 is jammed. Scenic but functional. The new Wam border crossing near Fujairah (opened Feb 2026) may provide additional capacity.</p>
+<p><strong>Disadvantage:</strong> Less well-documented crossing; some reports of rental car difficulties. Slightly longer total distance to Muscat.</p>
+<p><strong>Probability of success: 65%</strong></p>
+</div>
+
+<!-- ROUTE 3 -->
+<div class="route-card secondary">
+<div class="route-num">3</div>
+<h3>ROUTE 3: Dubai → Al Ain → Saudi Arabia → Riyadh Airport → International</h3>
+<h4>RIYADH HUB — For those unable to enter Oman</h4>
+<table>
+<tr><th>Segment</th><th>Distance</th><th>Normal Time</th><th>Crisis Time (est.)</th><th>Cost</th></tr>
+<tr><td>Dubai → Al Ain (E66)</td><td>160 km</td><td>1.5 hours</td><td>2–3 hours</td><td>Fuel ~AED 60</td></tr>
+<tr><td>Al Ain → Buraimi Border</td><td>~10 km</td><td>15 min</td><td>1–3 hours</td><td>Exit fee + Saudi visa</td></tr>
+<tr><td>Buraimi → Riyadh</td><td>~950 km</td><td>8–9 hours</td><td>9–12 hours</td><td>Fuel ~AED 250</td></tr>
+<tr><td>Riyadh → International Flight</td><td>Flight</td><td>Varies</td><td>Available but premium</td><td>$1,000–$5,000</td></tr>
+<tr><td><strong>TOTAL</strong></td><td>~1,120 km + flight</td><td>~14 hours</td><td>~18–28 hours</td><td><strong>$2,000–$7,000</strong></td></tr>
+</table>
+<p><strong>Key Intel:</strong> Riyadh has emerged as the primary exit route for the super-rich (Semafor). Private security companies are booking SUV fleets for the 10-hour drive. Riyadh airport operating normally. Life in Riyadh largely continuing as normal. However, Saudi visa requirements may be restrictive — not all nationalities can enter freely. Shelter-in-place for Jeddah was lifted; Dhahran remains in effect.</p>
+<p><strong>Probability of success: 55% (visa-dependent)</strong></p>
+</div>
+
+<!-- ROUTE 4 -->
+<div class="route-card emergency">
+<div class="route-num">4</div>
+<h3>ROUTE 4: DXB/DWC Limited Commercial Flight → London/Paris/Mumbai/Istanbul</h3>
+<h4>COMMERCIAL AIR — IF CONTACTED BY AIRLINE</h4>
+<table>
+<tr><th>Airline</th><th>Status (Mar 6)</th><th>Destinations Operating</th><th>Rebooking Window</th></tr>
+<tr><td>Emirates</td><td>Limited flights; priority by original booking</td><td>Select routes (London, Mumbai, Paris)</td><td>Up to 20 days from original date</td></tr>
+<tr><td>flydubai</td><td>Limited Moscow, Kazan, Novosibirsk, Islamabad, Multan</td><td>Russia, Pakistan, Somaliland</td><td>20 days</td></tr>
+<tr><td>Etihad (AUH)</td><td>Repatriation flights; commercial suspended to Mar 4+</td><td>Amsterdam, Delhi, Islamabad, Paris, London, Mumbai, Moscow</td><td>Until Mar 18 (free)</td></tr>
+<tr><td>S7 Airlines</td><td>Dubai → Novosibirsk (Mar 3), Dubai → Moscow (Mar 3-5)</td><td>Russia (via Antalya refuel)</td><td>Priority: stranded tourists</td></tr>
+</table>
+<p><strong>WARNING:</strong> Do NOT go to the airport unless contacted directly by your airline. Over 90% of flights still cancelled. Flights routing through Oman airspace then Saudi Arabia. Air France suspended until March 5+. Lufthansa until March 4+. Air Canada suspended until March 23. Wizz Air suspended until March 7+.</p>
+<p><strong>Probability of getting a seat in 72 hours: 20% (without existing booking) / 45% (with existing booking)</strong></p>
+</div>
+
+<!-- ROUTE 5 -->
+<div class="route-card emergency">
+<div class="route-num">5</div>
+<h3>ROUTE 5: Private Charter — Muscat/Riyadh → Istanbul/Cairo/Europe</h3>
+<h4>HIGH-NET-WORTH OPTION — $85,000–$235,000</h4>
+<table>
+<tr><th>Charter Type</th><th>Route</th><th>Current Price</th><th>Normal Price</th><th>Markup</th></tr>
+<tr><td>Light Jet (Nextant, 4-6 pax)</td><td>Muscat → Istanbul</td><td>€85,000–$93,000</td><td>~€30,000</td><td>~3×</td></tr>
+<tr><td>Heavy Jet (8-14 pax)</td><td>Muscat → Europe</td><td>$140,000–$235,000</td><td>~$70,000</td><td>~2-3×</td></tr>
+<tr><td>Per-Seat (shared charter)</td><td>Muscat → Moscow</td><td>€20,000/person</td><td>N/A</td><td>—</td></tr>
+<tr><td>Per-Seat (shared charter)</td><td>Muscat → Maldives/Cairo</td><td>$15,000–$30,000/person</td><td>N/A</td><td>—</td></tr>
+</table>
+<p><strong>Providers Active:</strong> Air Charter Service (global, evacuations underway from Muscat), Vimana Private Jets ($175K–$235K to Europe), Dubai Key (short-haul to Istanbul, Cairo, Maldives), JetVip (Muscat-based), AlbaJet ("availability extremely thin"). Many operators refusing flights due to insurance requirements. Requires land transport to Muscat/Riyadh first.</p>
+<p><strong>Probability of success with budget: 85% ($150K+) / 50% ($50K–$100K) / 15% (under $50K)</strong></p>
+</div>
+
+<!-- POLAND OPTIMIZED PLAN -->
+<div class="callout-green callout" style="background:#eeffee;border-left:6px solid #006847;padding:24px;margin-top:24px">
+<h3 style="color:#006847;margin-top:0">🇵🇱 POLAND-OPTIMIZED EVACUATION PLAN — Mother + 13-Year-Old Daughter</h3>
+
+<h4>OPTION A: Polish Government Coach Convoy → Oman → Military/Commercial Flight to Warsaw (RECOMMENDED)</h4>
+<p><strong>How it works:</strong> Polish consular officials in Dubai have been organizing overnight coach convoys from Dubai to the Hatta border crossing into Oman. Groups escorted by consular staff have already successfully crossed into Omani territory. From Oman, passengers board Polish military Boeing 737s or commercial flights arranged by Poland's MFA routed to Warsaw.</p>
+<p><strong>Action required:</strong> Register in Odyseusz system immediately. Call Polish MFA Helpline: <strong>+48 22 523 88 80</strong> (08:00–22:00 CET). Contact Polish Embassy consular section in Dubai. Request placement on next convoy. <strong>Families with children are designated vulnerable and receive PRIORITY.</strong></p>
+<p><strong>Cost:</strong> Government-organized transport is free or at nominal cost. She may need to cover meals and interim accommodation in Oman.</p>
+<p><strong>Timeline:</strong> 24–72 hours from registration to Warsaw arrival, depending on convoy scheduling and flight availability.</p>
+<p><strong>Probability of success: 70-80%</strong> (Poland is now actively evacuating; families with minors are priority)</p>
+
+<h4>OPTION B: Self-Drive to Muscat → LOT/Commercial Flight to Warsaw via Istanbul or Connecting Hub</h4>
+<p>If she has access to a vehicle: Drive Dubai → Hatta border (E44, ~140km) → Muscat Airport (~350km). Total drive: 5-6 hours normal, 8-14 hours in current conditions. From Muscat, book commercial flights to Warsaw. Oman Air has INCREASED European flights. Turkish Airlines, Lufthansa, KLM resuming from Muscat. Istanbul is the primary European connection hub. LOT Polish Airlines should be checked for any direct or connecting service from regional airports.</p>
+<p><strong>Child considerations:</strong> Pack entertainment, snacks, water, warm clothing for overnight drive. The Hatta border queue could mean 3-6 hours waiting in the car. Oman border officials are processing families and may require both passports stamped. If using a rental car, she MUST have an NOC (No Objection Certificate) from the rental agency plus Oman Orange Card insurance (available at border).</p>
+<p><strong>Cost:</strong> Fuel ~AED 150–200 + border fees AED 35/person + Oman visa (many nationalities free/on-arrival) + flights $800–$3,000/person to Europe.</p>
+<p><strong>Probability of success: 65%</strong></p>
+
+<h4>OPTION C: EU Consular Assistance — Any EU Embassy Can Help</h4>
+<p>Under EU Directive 2015/637, EU citizens in a third country where their own member state has no embassy or consulate (or where it is inaccessible) can seek consular protection from ANY EU member state's embassy. While Poland has representation in UAE, if the Polish consular section is overwhelmed, she can approach embassies of other EU states — particularly those with active evacuation flights: <strong>Czech Republic</strong> (3 evacuation flights completed), <strong>Italy</strong> (2,500 Italians repatriated), <strong>Hungary</strong> (flydubai charter flights Mar 5-8), <strong>Netherlands</strong> (KLM repatriation from Muscat Mar 6), <strong>Austria</strong> (charter from Muscat for 170 people), <strong>Bulgaria</strong> (GullivAir 326-seat flight from Dubai), <strong>Estonia</strong> (180-seat flight from Muscat Mar 5), <strong>Slovenia</strong> (organized police-escorted bus convoys from Dubai to Muscat for families with children).</p>
+<p><strong>NOTE:</strong> The Slovenian convoy model — police-escorted buses from Dubai to Muscat airport, specifically organized for families with children — is particularly relevant. Contact Slovenian embassy to ask if Polish nationals can join future convoys.</p>
+
+<h4>OPTION D: Wait for Emirates Commercial Resumption</h4>
+<p>Emirates suspended Dubai flights until March 7 minimum. FM Sikorski stated Emirates plans ~100 aircraft departures in coming days; Poland is seeking maximum seats to Warsaw. If she has an existing Emirates booking, she may be contacted directly for rebooking. Free rebooking available within 20 days of original travel date. <strong>Do NOT go to the airport unless contacted by the airline.</strong></p>
+<p><strong>Probability of success (within 72 hours): 35-45%</strong> (improving as DXB capacity ramps)</p>
+</div>
+
+<h3 style="margin-top:24px">Poland Evacuation Contact Sheet</h3>
+<table>
+<tr><th>Resource</th><th>Contact</th><th>Notes</th></tr>
+<tr><td>Polish MFA Helpline (dedicated crisis line)</td><td><strong>+48 22 523 88 80</strong></td><td>Daily 08:00–22:00 CET</td></tr>
+<tr><td>Odyseusz Registration System</td><td>odyseusz.msz.gov.pl</td><td>REGISTER IMMEDIATELY — this is how MFA tracks & contacts you</td></tr>
+<tr><td>Polish Embassy Abu Dhabi</td><td>24-hour emergency line via embassy website</td><td>Consular staff organizing Dubai→Oman convoys</td></tr>
+<tr><td>Sports & Tourism Minister Rutnicki</td><td>Coordinating interministerial evacuation team</td><td>574 Poles returned as of Mar 5; 1,800 expected within days</td></tr>
+<tr><td>EU Emergency Consular Assistance</td><td>Any EU member state embassy in UAE</td><td>EU Directive 2015/637 — right to assistance from any EU state</td></tr>
+<tr><td>Polish Military Contingent</td><td>Authorized through March 31, 2026</td><td>Up to 150 soldiers; Boeing 737 military crews; priority: medical/vulnerable</td></tr>
+</table>
+</section>
+
+<!-- §6 MASS EVACUATION -->
+<section id="mass-evac">
+<h2>6. Mass Evacuation Probability — 90% Expat Population</h2>
+
+<h3>UAE Demographic Vulnerability</h3>
+<div class="stat-grid">
+<div class="stat-box"><div class="number">11M+</div><div class="label">UAE Total Population (2025)</div></div>
+<div class="stat-box"><div class="number">88-89%</div><div class="label">Expatriates</div></div>
+<div class="stat-box"><div class="number">~3.5M</div><div class="label">Dubai Expat Population</div></div>
+<div class="stat-box"><div class="number">51%</div><div class="label">Indian Nationals (of expats)</div></div>
+<div class="stat-box"><div class="number">200K</div><div class="label">Britons in Region (Starmer est.)</div></div>
+<div class="stat-box"><div class="number">50K+</div><div class="label">Americans in UAE</div></div>
+</div>
+
+<p>The UAE has the world's most extreme demographic imbalance: only ~11% of its population are citizens. Dubai's 3.5 million expats are overwhelmingly temporary residents under the kafala (sponsorship) system. This creates an unprecedented evacuation calculus — if even 10% of expats attempt to leave simultaneously, that's 350,000 people competing for limited exit capacity.</p>
+
+<h3>Exit Capacity Analysis</h3>
+<table>
+<tr><th>Exit Channel</th><th>Normal Daily Capacity</th><th>Current Capacity (Crisis)</th><th>Bottleneck</th></tr>
+<tr><td>DXB Airport</td><td>~260,000 passengers/day</td><td>~15,000–25,000 (est. 10%)</td><td>Airspace restrictions; limited flights</td></tr>
+<tr><td>Hatta Border (Oman)</td><td>~5,000 vehicles/day</td><td>~2,000–3,000 (processing delays)</td><td>3-6 hour queues; document checks</td></tr>
+<tr><td>Other land borders (combined)</td><td>~3,000 vehicles/day</td><td>~1,500–2,000</td><td>Visa restrictions; awareness</td></tr>
+<tr><td>Sea (cruise, private boats)</td><td>Variable</td><td>~2,000–5,000 (6 cruise ships stuck)</td><td>Port restrictions; maritime threat</td></tr>
+<tr><td><strong>MAX DAILY EXIT</strong></td><td>—</td><td><strong>~50,000–80,000 people/day</strong></td><td></td></tr>
+</table>
+
+<div class="callout">
+<strong>MATH: If 1 million expats want to leave</strong> (Air Charter Service's worst-case projection), at current exit capacity of ~50-80K/day, full evacuation takes <strong>12–20 days minimum</strong>. If only 10% try (350K), still 4–7 days. Every day of continued strikes adds to the backlog. This is why speed is critical.
+</div>
+
+<h3>Mass Evacuation Probability Scenarios</h3>
+<table>
+<tr><th>Scenario</th><th>Probability</th><th>Trigger</th><th>Expat Departure Rate</th></tr>
+<tr><td>Quick resolution (< 2 weeks)</td><td>15%</td><td>Ceasefire / Iranian collapse</td><td>5–10% leave temporarily</td></tr>
+<tr><td>Extended conflict (2-6 weeks)</td><td>40%</td><td>Current trajectory continues</td><td>15–25% leave; majority shelter-in-place</td></tr>
+<tr><td>Defense degrades; civilian hits increase</td><td>25%</td><td>Interceptor depletion; sustained strikes</td><td>30–50% attempt departure; mass panic</td></tr>
+<tr><td>Mass casualty event (MCI)</td><td>15%</td><td>Major missile hits population center</td><td>60–80% attempt departure; humanitarian crisis</td></tr>
+<tr><td>Catastrophic infrastructure strike (desal/power)</td><td>5%</td><td>Water/power failure</td><td>90%+ attempt departure; country-level collapse</td></tr>
+</table>
+
+<h3>Government Evacuation Plans</h3>
+<p><strong>🇵🇱 POLAND:</strong> PM Tusk authorized military aircraft on March 4. President Nawrocki signed deployment order for up to 150 soldiers through March 31. Two Boeing 737s with military crews departed March 5. ~10,000 Polish citizens in UAE/Oman; 100+ identified for medical priority evacuation. 574 Poles returned as of March 5; ~1,800 expected within days. FM Sikorski negotiating with Emirates for maximum seats to Warsaw on upcoming commercial flights (~100 aircraft expected). Polish consular staff organizing coach convoys from Dubai → Hatta → Oman. Families with children designated as vulnerable and receive priority. Minister Rutnicki coordinating interministerial team. The MFA helpline confirmed it also fields calls from foreign spouses and dependants holding Polish residence permits.</p>
+<p><strong>EU Commission:</strong> 6+ repatriation flights completed from region to Bulgaria, Italy, Austria, Slovakia. Additional flights planned. EU Directive 2015/637 allows citizens to seek consular protection from any EU member state embassy.</p>
+<p><strong>UK:</strong> Foreign Office planning "biggest mass evacuation in a generation." 130,000+ Britons registered. First charter from Oman landed March 6 after delays. 4,000+ returned on commercial flights from UAE.</p>
+<p><strong>France:</strong> ~400,000 citizens in region. First repatriation flight (100 seats, priority: vulnerable/families with children) landed Paris. Military aircraft carrying 180 from Abu Dhabi. Two more flights planned.</p>
+<p><strong>Thailand:</strong> PM Anutin readying military/charter flights for ~110,000 Thai nationals in region.</p>
+<p><strong>Czech Republic:</strong> 3 government flights from Oman, Jordan, Egypt — 175 people. More planned. Smartwings operating commercial return flights.</p>
+<p><strong>Germany:</strong> Working with Lufthansa and TUI to move people overland from Dubai.</p>
+<p><strong>US:</strong> State Department advises DO NOT EXPECT government evacuation. 18,000 Americans returned safely by March 5. STEP enrollment urged. Emergency line: +1-202-501-4444.</p>
+</section>
+
+<!-- §7 REFUGEE STATUS -->
+<section id="refugee">
+<h2>7. Refugee Status & Legal Framework Post-Mass Casualty Event</h2>
+
+<h3>The UAE Refugee Paradox</h3>
+<p>The UAE is <strong>not a signatory to the 1951 UN Refugee Convention</strong>. It has no formal refugee framework. During the Syrian refugee crisis, GCC states explicitly refused to accept Syrians as refugees, instead processing them through the existing temporary labor migration (kafala) system. Expats in the UAE are, by legal definition, temporary residents — not citizens — with no path to permanent residency for most. This creates a unique vulnerability: in a mass casualty scenario, expats cannot claim refugee status <em>within</em> the UAE because they are already there on temporary visas.</p>
+
+<h3>Refugee/Displaced Person Scenarios</h3>
+
+<h4>Scenario A: Expats Fleeing UAE to Third Countries</h4>
+<p>If mass casualties force departure, expats would NOT be classified as refugees under international law — they would be returning to their countries of citizenship or seeking temporary shelter in neighboring states. Oman, which has remained relatively unscathed, would be the primary receiving state. However, Oman (pop. 5.3 million) cannot absorb hundreds of thousands of arrivals. Saudi Arabia has visa restrictions. The most likely outcomes are organized government repatriation flights (as being planned by UK, Thailand, Czech Republic) and commercial evacuation once airspace reopens.</p>
+
+<h4>Scenario B: Stateless / Undocumented Workers</h4>
+<p>The most vulnerable population: low-wage workers whose employers hold passports (common under kafala), workers with expired visas, and domestic workers. In a crisis, these individuals may be unable to exit because they lack travel documents. The UAE has historically auto-extended visas during emergencies (COVID precedent). MOHRE (Ministry of Human Resources) protections apply during declared emergencies — residence visas remain valid and employers cannot terminate during the crisis.</p>
+
+<h4>Scenario C: Iranian Nationals in the UAE</h4>
+<p>An estimated 400,000–500,000 Iranians live in the UAE. Their status becomes extremely precarious if the conflict intensifies. The UAE recalled its ambassador to Iran on March 1. Iranian nationals could face scrutiny, travel restrictions, or social hostility. They cannot return home during active bombing. UNHCR may need to intervene if Iranian residents face persecution or statelessness.</p>
+
+<h4>Scenario D: Polish / EU Nationals — Government Repatriation</h4>
+<p>Approximately 10,000 Polish citizens are in the UAE and Oman. Poland has now activated military evacuation assets through March 31. As an EU citizen, a Polish national has strong protections: (1) Any EU embassy can provide consular assistance under Directive 2015/637; (2) The EU Commission has coordinated 6+ evacuation flights from the region; (3) Poland's military contingent of up to 150 soldiers is authorized for the operation; (4) Families with children are designated as vulnerable and receive priority across all government-organized transport. Unlike US citizens (who are told "do not expect evacuation"), EU/Polish nationals have a more proactive government framework.</p>
+
+<h4>Scenario E: US Citizens — Emergency Repatriation</h4>
+<p>Approximately 50,000 Americans in UAE. US government assistance primarily supports US citizens only. Repatriation flights are extremely rare — the government's stated position: "Do not expect to be evacuated by the US government." If authorized, citizens are typically required to reimburse transportation costs. Non-US family members may receive limited assistance depending on circumstances. A Congressional Privacy Release Form is required for Congressional office intervention. 18,000 Americans have returned safely as of March 5, including 8,500 on March 4 alone. US embassy in Israel now offering bus service to Egyptian border.</p>
+
+<div class="callout-blue callout">
+<strong>POLISH NATIONAL WITH MINOR CHILD — PRIORITY EVACUATION GUIDANCE</strong><br><br>
+<strong>IMMEDIATE ACTIONS:</strong><br>
+(1) <strong>Register in Odyseusz system NOW</strong> — Poland's abroad-registration portal. This is how the MFA tracks and contacts citizens for evacuation. Those who registered received real-time updates immediately.<br>
+(2) <strong>Call Polish MFA Helpline:</strong> +48 22 523 88 80 (daily 08:00–22:00 CET). This supplements 24-hour emergency lines at individual embassies.<br>
+(3) <strong>Contact Polish Embassy in Abu Dhabi</strong> — consular officials in Dubai have been organizing overnight coach convoys to move citizens to the Hatta border crossing into Oman. Polish citizens with children are classified as <strong>vulnerable</strong> and receive priority on both military and chartered evacuation flights.<br>
+(4) Ensure both passports (mother + daughter) are accessible, valid 6+ months. Photograph all documents and store digitally (cloud + phone).<br>
+(5) Keep Emirates ID accessible. MOHRE protects employment during declared emergencies — visa remains valid and she can return anytime.<br>
+(6) <strong>Pack a go-bag for two:</strong> Passports, Emirates IDs, medications, phone chargers, cash (AED + EUR + USD), 2L water each, snacks for the child, warm layer (Oman nights are cool in March).<br><br>
+<strong>POLAND EVACUATION STATUS (as of March 6):</strong><br>
+• PM Donald Tusk authorized military aircraft on March 4. President Nawrocki signed deployment order for up to <strong>150 soldiers</strong> through March 31.<br>
+• Two Boeing 737s with military crews departed Poland on March 5 for the Middle East.<br>
+• ~10,000 Polish citizens estimated in UAE + Oman. 100+ identified as needing medical evacuation (priority).<br>
+• 574 Polish citizens returned from the Middle East as of March 5.<br>
+• ~1,800 Poles expected to return within days via military + commercial flights.<br>
+• FM Sikorski stated Emirates plans ~100 aircraft departures in coming days; Poland is seeking maximum allocation of seats to Warsaw.<br>
+• Polish consular staff in Dubai have organized <strong>coach convoys to Hatta border → Oman</strong>, escorted by consular officials. Groups have already crossed into Oman.<br>
+• <strong>Families with children, medical cases, and vulnerable persons receive PRIORITY</strong> on all government-organized transport.<br>
+• As an EU citizen, she may also be eligible for evacuation flights organized by other EU states (6+ EU Commission flights already completed from region to Bulgaria, Italy, Austria, Slovakia). The EU consular assistance directive allows EU citizens to seek help from ANY EU embassy when their own country's embassy is unavailable.
+</div>
+</section>
+
+<!-- §8 PROBABILITY TIMELINE -->
+<section id="timeline">
+<h2>8. Probability Timeline: Days 7–60</h2>
+
+<table>
+<tr><th>Day</th><th>Date</th><th>Defense Status</th><th>Conflict Trajectory</th><th>Dubai Risk</th><th>Evacuation Window</th></tr>
+<tr><td>7</td><td>Mar 6</td><td>THAAD radars damaged; Patriot holding; drone penetrations increasing</td><td>Israel strikes Tehran + Beirut. Trump demands surrender. Iran FM rejects talks.</td><td><span class="risk-high">HIGH</span></td><td>Oman road open; DXB ~10-20%</td></tr>
+<tr><td>10</td><td>Mar 9</td><td>Pentagon warned: critical stocks low after 10 days. European interceptors arriving.</td><td>Kurdish offensive intensifying. Iran may escalate to force negotiations.</td><td><span class="risk-high">HIGH</span></td><td>DXB may reach 30-40% if no new strikes</td></tr>
+<tr><td>14</td><td>Mar 13</td><td>UK frigate arrives Gulf. Ukrainian counter-drone teams deploying.</td><td>Trump's "4-week" window halfway. Either de-escalation signals or war of attrition.</td><td><span class="risk-elevated">ELEVATED</span></td><td>If airspace stable: 50-60% capacity</td></tr>
+<tr><td>21</td><td>Mar 20</td><td>Nowruz (Iranian New Year). Potential symbolic pause in Iranian strikes.</td><td>Kurdish front may achieve territorial gains. Iranian regime stability tested.</td><td><span class="risk-elevated">ELEVATED</span></td><td>Near-normal for outbound</td></tr>
+<tr><td>28</td><td>Mar 27</td><td>Trump's stated 4-week deadline. Interceptor stocks critical if not resupplied.</td><td>DECISION POINT: Ceasefire push vs. escalation to ground operations.</td><td><span class="risk-moderate">MODERATE</span> to <span class="risk-critical">CRITICAL</span></td><td>Depends entirely on ceasefire</td></tr>
+<tr><td>45</td><td>Apr 13</td><td>New defense systems integrated if Western supply holds.</td><td>If war continues: economic devastation, oil crisis, possible ground invasion talk.</td><td><span class="risk-elevated">ELEVATED</span></td><td>Normalized or evacuated</td></tr>
+<tr><td>60</td><td>Apr 28</td><td>Steady state or collapsed.</td><td>Regime change in Iran or frozen conflict. Global recession pressures ceasefire.</td><td><span class="risk-moderate">MODERATE</span></td><td>Near-normal or irrelevant</td></tr>
+</table>
+
+<h3>Integrated Probability Model (from prior SITREP, updated)</h3>
+<table>
+<tr><th>Scenario</th><th>Probability</th><th>Description</th></tr>
+<tr><td><strong>1. Quick Resolution</strong></td><td>12% ↓ (was 15%)</td><td>Iran regime collapses or capitulates within 2 weeks. Unlikely given hardline successor and rejection of talks.</td></tr>
+<tr><td><strong>2. Extended Air War (4-8 weeks)</strong></td><td>40% ↑ (was 35%)</td><td>Trump's stated 4-week timeline. Sustained US-Israeli strikes + Kurdish insurgency degrades Iran. Iranian retaliation continues but diminishing. Dubai stays in intermittent risk.</td></tr>
+<tr><td><strong>3. Defense Degrades / Interceptor Depletion</strong></td><td>25% (stable)</td><td>THAAD/Patriot stocks depleted before Iran's offensive capability eliminated. 7-14 day danger window where civilian hits increase. Dubai faces serious secondary damage.</td></tr>
+<tr><td><strong>4. Mass Casualty Event in UAE</strong></td><td>15% (stable)</td><td>Iranian missile penetrates defense and hits population center, desal plant, or energy infrastructure. Triggers mass evacuation panic. Regional humanitarian crisis.</td></tr>
+<tr><td><strong>5. Regional Conflagration</strong></td><td>8% ↑ (was 5%)</td><td>War spreads to Lebanon (already happening), Iraq, Azerbaijan. Hormuz fully closed. Global energy crisis. Multiple simultaneous evacuations. Houthi re-engagement.</td></tr>
+</table>
+</section>
+
+<!-- §9 REAL ESTATE -->
+<section id="realestate">
+<h2>9. Real Estate Impact Report</h2>
+
+<h3>Pre-War Baseline</h3>
+<p>Dubai real estate entered the conflict from a position of extraordinary strength. In 2025, the city recorded AED 917 billion (~$250 billion) in transactions — the highest in its history. Prices surged 60% between 2022 and Q1 2025 (Fitch). Q4 2025 prices were up nearly 13% year-over-year (CBRE). January 2026 saw a record AED 55.18 billion in residential transactions, up 43.9% YoY. Off-plan properties dominated at 71.27% of activity. However, Fitch Ratings had already predicted a correction in late 2025/2026, with prices possibly falling up to 15%. UBS ranked Dubai 5th-highest in bubble risk among 21 major cities. A 131,234-unit delivery pipeline for 2026 was already raising oversupply concerns.</p>
+
+<h3>Post-Strike Market Reaction</h3>
+
+<table>
+<tr><th>Indicator</th><th>Pre-Strike</th><th>Post-Strike (Day 5-7)</th><th>Change</th></tr>
+<tr><td>Emaar Properties share price</td><td>Baseline</td><td>~5% decline</td><td>Moderate sell-off</td></tr>
+<tr><td>Aldar Properties share price</td><td>Baseline</td><td>~5% decline</td><td>Moderate sell-off</td></tr>
+<tr><td>Transaction volume</td><td>Record (Jan 2026)</td><td>Sharp slowdown — "wait and see"</td><td>Significant pause</td></tr>
+<tr><td>Bond markets</td><td>Open</td><td>"Largely closed to new borrowing" for UAE developers</td><td><span class="risk-high">SEVERE</span></td></tr>
+<tr><td>Buyer sentiment</td><td>Bullish</td><td>"Investors not thinking of investing" — senior RE banker to Reuters</td><td>Frozen</td></tr>
+<tr><td>Capital raising</td><td>Active</td><td>At least one major firm cancelled planned fundraising round</td><td>Halted</td></tr>
+</table>
+
+<h3>Segment-by-Segment Analysis</h3>
+
+<h4>Luxury / Ultra-Prime (Palm Jumeirah, Downtown, DIFC)</h4>
+<p>Most vulnerable segment. Physical damage to Palm Jumeirah (Fairmont Hotel struck, Burj Al Arab debris hit) shatters the "safety" narrative that drove the 500 properties sold above $10M last year. High-net-worth foreign buyers — the primary demand driver — are the most mobile and the first to pause. Expect 15-25% transaction decline in next 90 days. Long-term: depends entirely on conflict duration.</p>
+
+<h4>Off-Plan / Speculative</h4>
+<p>Highest structural risk. 65% of 2025 transactions were off-plan. With 131,234 units in the 2026 pipeline and buyer confidence shaken, the absorption rate is the critical variable. Speculative buyers who purchased for flipping will face illiquid markets. Developers may need to offer payment plan extensions. This segment was already at correction risk before the war.</p>
+
+<h4>Mid-Market Residential / Rentals</h4>
+<p>Most resilient. 88-89% expat population still needs housing. MOHRE protections mean employers cannot terminate during emergencies. The majority of Dubai's 3.5M expats are choosing to remain. Rental yields (6-9%) remain attractive. Paradox: some capital flight from other Gulf states into Dubai RE may occur if Dubai is perceived as the strongest surviving market.</p>
+
+<h4>Commercial / DIFC</h4>
+<p>Immediate pressure from business travel disruption and aviation shutdown. Banks pulling some operations. However, redundant power, communications, and security systems in DIFC provide resilience. Remote work adoption reduces short-term impact.</p>
+
+<h3>Price Forecast</h3>
+<table>
+<tr><th>Scenario</th><th>Luxury</th><th>Off-Plan</th><th>Mid-Market</th><th>Rental Yields</th></tr>
+<tr><td>Quick Resolution (12%)</td><td>-5 to -8%</td><td>-3 to -5%</td><td>Flat</td><td>Stable</td></tr>
+<tr><td>Extended Conflict (40%)</td><td>-10 to -20%</td><td>-8 to -15%</td><td>-3 to -5%</td><td>Slight compression</td></tr>
+<tr><td>Defense Degrades (25%)</td><td>-20 to -30%</td><td>-15 to -25%</td><td>-5 to -10%</td><td>Flat (demand shift to long-term)</td></tr>
+<tr><td>Mass Casualty (15%)</td><td>-30 to -50%</td><td>-25 to -40%</td><td>-10 to -20%</td><td>Spikes short-term, then collapses</td></tr>
+<tr><td>Regional Conflagration (8%)</td><td>-50%+</td><td>Market freeze</td><td>-20 to -30%</td><td>Irrelevant (mass departure)</td></tr>
+</table>
+
+<div class="callout">
+<strong>KEY INSIGHT:</strong> "The city cannot function if everyone with a foreign passport flees" — Jim Krane, Rice University Baker Institute. Dubai's entire economic model — unlike oil-dependent Abu Dhabi — is built on foreign confidence. The 5-year real estate surge was powered by post-COVID wealth migration. That narrative has been physically damaged by missiles hitting Palm Jumeirah. Recovery depends entirely on how fast the "safety haven" brand can be restored. Historical precedent: 2008 crisis saw 50-60% price drops, but COVID recovery took only 12-18 months. This crisis is different — the risk is existential to the brand, not cyclical.
+</div>
+</section>
+
+<!-- §10 SOCIAL MEDIA -->
+<section id="social">
+<h2>10. UAE Social Media Crackdown & Information Control</h2>
+
+<h3>Legal Framework</h3>
+<p>Within hours of the first strikes, the UAE's Public Prosecution office issued a warning against "publishing or circulating rumours and information from unknown sources through social media platforms or any other technological means." The cybercrime law provides for:</p>
+
+<table>
+<tr><th>Offense</th><th>Penalty</th><th>Scope</th></tr>
+<tr><td>Publishing content harmful to "public order," "national unity," or state reputation</td><td>Fines up to AED 283,000 ($77,000 / £58,000)</td><td>All platforms — X/Twitter, Instagram, Facebook, TikTok, WhatsApp</td></tr>
+<tr><td>Criticizing or insulting UAE government/institutions</td><td>Fines up to AED 735,000 (~£200,000) or 5 years prison + deportation</td><td>Includes reposting, even if not original creator</td></tr>
+<tr><td>Spreading "false news, rumours, or misleading information" about wars/security</td><td>Imprisonment up to 5 years + fines up to AED 3 million (€700,000+)</td><td>Broadly defined — includes "unverified" content from "unknown sources"</td></tr>
+<tr><td>Posting without mandatory Advertiser Permit (effective Feb 1, 2026)</td><td>Permit revocation + fines</td><td>All influencers/content creators must obtain UAE Media Council permit for ANY promotional content</td></tr>
+</table>
+
+<h3>PR Campaign & Narrative Control</h3>
+<p>The UAE has launched a sophisticated parallel operation:</p>
+<p><strong>Influencer mobilization:</strong> A viral video trend emerged — caption: "You live in Dubai, aren't you scared?" followed by "No, because I know who protects us." The campaign frames the defense system intercepts as proof of safety rather than evidence of ongoing threat. Dubai police explicitly warned that content "contradicting official announcements or that may cause social panic" could result in 2 years prison and a minimum £40,000 fine.</p>
+<p><strong>Self-censorship:</strong> At least one influencer with millions of followers deleted footage of burning missile debris filmed outside her apartment. "The Dubai authorities want to control the narrative, that's for sure." Content creators living under the "Creators HQ" visa scheme — which grants free permits to influencers — face the implicit threat: lose your visa, lose your home. Anonymous influencers told media that creators were "instructed to present a rose-tinted image of Dubai on social media, acting as though everything is normal."</p>
+<p><strong>Official messaging:</strong> The UAE Ministry of Defense emphasizes: 165 ballistic missiles intercepted, 541 drones destroyed. The narrative: the defense system works. NCEMA (crisis authority) declared "the situation is under control." Dubai Media Office criticized "outdated videos and images of past fire incidents" being circulated — some AI-generated content falsely suggested Burj Khalifa was under direct attack.</p>
+
+<div class="callout">
+<strong>ASSESSMENT:</strong> The UAE's information control strategy is rational from a government perspective — panic causes more damage than missiles. However, for individuals making life-or-death evacuation decisions, the sanitized information environment creates a dangerous gap between <em>official narrative</em> and <em>ground truth</em>. Radha Stirling (Detained in Dubai): "When people know they could face jail for what they post, it inevitably shapes what you see online." <strong>Action: Rely on international sources (CNN, Al Jazeera, BBC, ACLED), not Dubai-based social media, for situational awareness.</strong>
+</div>
+</section>
+
+<!-- §11 CONTACTS -->
+<section id="contacts">
+<h2>11. Emergency Contacts & Resources</h2>
+
+<table>
+<tr><th>Resource</th><th>Contact</th><th>Notes</th></tr>
+<tr style="background:#eeffee"><td><strong>🇵🇱 Polish MFA Crisis Helpline</strong></td><td><strong>+48 22 523 88 80</strong></td><td><strong>Daily 08:00–22:00 CET — PRIMARY CONTACT</strong></td></tr>
+<tr style="background:#eeffee"><td><strong>🇵🇱 Odyseusz Registration</strong></td><td><strong>odyseusz.msz.gov.pl</strong></td><td><strong>REGISTER NOW — triggers evacuation eligibility</strong></td></tr>
+<tr style="background:#eeffee"><td><strong>🇵🇱 Polish Embassy Abu Dhabi (24h)</strong></td><td>Via embassy website emergency line</td><td>Consular staff organizing coach convoys to Oman</td></tr>
+<tr><td>UAE Emergency</td><td>999 (Police) / 998 (Ambulance) / 997 (Civil Defense)</td><td>Arabic & English</td></tr>
+<tr><td>NCEMA (Crisis Authority)</td><td>Official social media channels; NCEMA app</td><td>Real-time alerts</td></tr>
+<tr><td>US Embassy Abu Dhabi</td><td>+971-2-414-2200</td><td>Consular services suspended Mar 2–4+</td></tr>
+<tr><td>US Consulate Dubai</td><td>+971-2-414-2200</td><td>Same main line</td></tr>
+<tr><td>US State Dept Emergency (abroad)</td><td>+1-202-501-4444</td><td>24/7</td></tr>
+<tr><td>US State Dept (from US/Canada)</td><td>1-888-407-4747</td><td>24/7</td></tr>
+<tr><td>STEP Enrollment</td><td>step.state.gov</td><td>For US citizens — register immediately</td></tr>
+<tr><td>EU Consular Assistance</td><td>Any EU member state embassy in UAE</td><td>EU Directive 2015/637 — Polish nationals eligible</td></tr>
+<tr><td>Emirates Rebooking</td><td>emirates.com</td><td>Don't go to airport unless notified</td></tr>
+<tr><td>flydubai Rebooking</td><td>flydubai.com / "Manage Your Booking"</td><td>Update contact details</td></tr>
+<tr><td>Etihad Rebooking</td><td>etihad.com</td><td>Free rebooking until Mar 18</td></tr>
+<tr><td>Air Charter Service (evacuation)</td><td>aircharterservice.com</td><td>Evacuations from Muscat active</td></tr>
+<tr><td>Oman eVisa</td><td>evisa.rop.gov.om</td><td>Apply BEFORE reaching border</td></tr>
+</table>
+</section>
+
+</div>
+
+<div class="footer">
+SITREP v2.0 | March 7, 2026 | Prepared from open-source intelligence | Not official government guidance<br>
+Sources: CNN, NPR, Al Jazeera, Reuters, CNBC, Bloomberg, Aviation Week, ACLED, Critical Threats, Alma Center, JINSA, Wikipedia, Gulf News, Khaleej Times, The National, Euronews, Newsweek, Semafor, The Guardian, Notes From Poland, Polish Radio, Kyiv Post, Cyprus Mail, i24NEWS, SpecialEurasia, Travel &amp; Tour World
+</div>
+
+</body>
+</html>
